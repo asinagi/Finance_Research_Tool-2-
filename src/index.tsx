@@ -1177,6 +1177,97 @@ app.get('*', (c) => {
       border-top: 1px solid var(--border-color);
     }
 
+    /* ── PANEL SLOT SYSTEM ── */
+    .panel-slot-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      border-top: 1px solid var(--border-color);
+      min-height: 0;
+    }
+    .panel-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .panel-slot:nth-child(2n) { border-right: none; }
+    .panel-slot:nth-last-child(-n+2) { border-bottom: none; }
+    .panel-slot:hover {
+      background: rgba(88,166,255,0.04);
+      border-color: rgba(88,166,255,0.25);
+    }
+    .panel-slot:hover .slot-icon { color: #58A6FF; }
+    .panel-slot:hover .slot-label { color: #58A6FF; }
+    .panel-slot:hover .slot-ring { border-color: rgba(88,166,255,0.35); }
+    /* slot icon ring */
+    .slot-ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(139,148,158,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.18s;
+    }
+    .slot-icon {
+      font-size: 18px;
+      color: rgba(139,148,158,0.35);
+      transition: color 0.18s;
+    }
+    .slot-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(139,148,158,0.4);
+      font-family: 'JetBrains Mono', monospace;
+      transition: color 0.18s;
+    }
+    .slot-hint {
+      font-size: 8px;
+      color: rgba(139,148,158,0.25);
+      font-family: 'JetBrains Mono', monospace;
+      position: absolute;
+      bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+    /* slot ID badge (top-left) */
+    .slot-id {
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      color: rgba(139,148,158,0.2);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    /* subtle grid lines in background */
+    .panel-slot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(139,148,158,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,148,158,0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
     /* ── NEWS FEED ── */
     .news-feed-list { overflow-y: auto; height: 100%; }
 
@@ -2144,6 +2235,10 @@ app.get('*', (c) => {
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes toastFadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
     /* ===== MARKET PULSE STRIP ===== */
@@ -3599,26 +3694,43 @@ app.get('*', (c) => {
               </div>
             </div>
 
-            <!-- Bottom 2-col -->
-            <div class="db-center-bottom">
-              <!-- News Feed -->
-              <div class="db-panel" style="border-right:1px solid var(--border-color); overflow:hidden; display:flex; flex-direction:column;">
-                <div class="db-panel-hdr">
-                  <div class="db-panel-title"><i class="fas fa-newspaper"></i> 시황 뉴스·리서치</div>
-                  <div class="db-panel-acts"><span class="db-mini-btn active">전체</span><span class="db-mini-btn">매크로</span></div>
-                </div>
-                <div class="news-feed-list" id="news-feed-list"></div>
+            <!-- ── PANEL SLOT GRID ── -->
+            <div class="panel-slot-grid" id="panel-slot-grid">
+
+              <!-- Slot A -->
+              <div class="panel-slot" id="slot-A" onclick="onSlotClick('A')">
+                <span class="slot-id">SLOT · A</span>
+                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+                <span class="slot-label">패널 대기</span>
+                <span class="slot-hint">클릭하여 패널 추가</span>
               </div>
 
-              <!-- Correlation Heatmap -->
-              <div class="db-panel" style="overflow:hidden; display:flex; flex-direction:column;">
-                <div class="db-panel-hdr">
-                  <div class="db-panel-title"><i class="fas fa-th"></i> 자산 상관관계 매트릭스</div>
-                  <div class="db-panel-acts"><span class="db-mini-btn active">1Y</span><span class="db-mini-btn">3Y</span></div>
-                </div>
-                <div class="db-panel-body no-pad" style="flex:1;padding:6px 8px;" id="db-corr-heatmap"></div>
+              <!-- Slot B -->
+              <div class="panel-slot" id="slot-B" onclick="onSlotClick('B')">
+                <span class="slot-id">SLOT · B</span>
+                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+                <span class="slot-label">패널 대기</span>
+                <span class="slot-hint">클릭하여 패널 추가</span>
               </div>
+
+              <!-- Slot C -->
+              <div class="panel-slot" id="slot-C" onclick="onSlotClick('C')">
+                <span class="slot-id">SLOT · C</span>
+                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+                <span class="slot-label">패널 대기</span>
+                <span class="slot-hint">클릭하여 패널 추가</span>
+              </div>
+
+              <!-- Slot D -->
+              <div class="panel-slot" id="slot-D" onclick="onSlotClick('D')">
+                <span class="slot-id">SLOT · D</span>
+                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+                <span class="slot-label">패널 대기</span>
+                <span class="slot-hint">클릭하여 패널 추가</span>
+              </div>
+
             </div>
+            <!-- /panel-slot-grid -->
 
           </div>
           <!-- /col-center -->
@@ -3693,8 +3805,6 @@ app.get('*', (c) => {
         initTreemap();
         initOverlayChart();
         initYieldChart();
-        buildNewsFeed();
-        buildDbCorrHeatmap();
         buildMacroBoard('fx');
         buildPfMiniDonut();
         buildPfMiniTable();
@@ -4001,6 +4111,43 @@ app.get('*', (c) => {
       { time:'어제', badge:'nb-sector', badgeText:'섹터', headline:'DRAM·NAND 가격 반등 MoM +8% — HBM3E 공급 병목 심화', sub:'SK하이닉스·삼성·마이크론으로 공급 집중' },
       { time:'어제', badge:'nb-macro', badgeText:'매크로', headline:'버크셔해서웨이 13F: AAPL 13% 추가 매도, 현금 $189B 신기록', sub:'CVX 신규 편입. 가치투자 기회 부재 언급' },
     ];
+
+    // ── PANEL SLOT SYSTEM ──
+    function onSlotClick(slotId) {
+      // 슬롯 클릭 시 토스트 알림 (향후 패널 연결 예정)
+      const slot = document.getElementById('slot-' + slotId);
+      if (!slot) return;
+      // 잠깐 하이라이트 효과
+      slot.style.transition = 'background 0.12s';
+      slot.style.background = 'rgba(88,166,255,0.08)';
+      setTimeout(() => { slot.style.background = ''; }, 400);
+      // 현재는 안내 알림만 표시
+      showSlotToast(slotId);
+    }
+
+    function showSlotToast(slotId) {
+      // 기존 토스트 제거
+      const prev = document.getElementById('slot-toast');
+      if (prev) prev.remove();
+      const toast = document.createElement('div');
+      toast.id = 'slot-toast';
+      toast.style.cssText = \`
+        position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+        background: #161b22; border: 1px solid rgba(88,166,255,0.35);
+        color: #e6edf3; font-family: 'JetBrains Mono', monospace;
+        font-size: 11px; padding: 8px 18px; border-radius: 6px;
+        z-index: 9999; pointer-events: none;
+        box-shadow: 0 0 16px rgba(88,166,255,0.15);
+        animation: toastFadeIn 0.2s ease;
+      \`;
+      toast.innerHTML = \`<i class="fas fa-info-circle" style="color:#58A6FF;margin-right:7px;"></i>SLOT · \${slotId} — 패널 요청서를 전달해 주시면 조립하겠습니다.\`;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 350);
+      }, 2800);
+    }
 
     function buildNewsFeed() {
       const el = document.getElementById('news-feed-list');
