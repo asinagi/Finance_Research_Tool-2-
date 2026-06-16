@@ -892,11 +892,19 @@ app.get('*', (c) => {
     .db-body {
       flex: 1;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ── MASTER SLOT GRID (3 × 3) ── */
+    .slot-master-grid {
+      flex: 1;
       display: grid;
-      /* 3-column: left 210px | center flex | right 240px */
-      grid-template-columns: 210px 1fr 240px;
-      grid-template-rows: 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
       gap: 0;
+      min-height: 0;
     }
 
     /* ── LEFT COLUMN ── */
@@ -1203,8 +1211,10 @@ app.get('*', (c) => {
       overflow: hidden;
       min-height: 0;
     }
-    .panel-slot:nth-child(2n) { border-right: none; }
-    .panel-slot:nth-last-child(-n+2) { border-bottom: none; }
+    /* 3열 기준: 오른쪽 끝(3번째) 슬롯 border-right 제거 */
+    .panel-slot:nth-child(3n) { border-right: none; }
+    /* 마지막 3개 슬롯 border-bottom 제거 */
+    .panel-slot:nth-last-child(-n+3) { border-bottom: none; }
     .panel-slot:hover {
       background: rgba(88,166,255,0.04);
       border-color: rgba(88,166,255,0.25);
@@ -3561,256 +3571,78 @@ app.get('*', (c) => {
           <div class="db-ticker-item"><span class="db-ticker-sym">USD/KRW</span><span class="db-ticker-val neutral">1,381</span><span class="db-ticker-chg positive">▲+0.12%</span></div>
         </div>
 
-        <!-- Main 3-Column Body -->
+        <!-- Main Body — Full-width Slot Grid -->
         <div class="db-body">
 
-          <!-- ═══ LEFT COLUMN ═══ -->
-          <div class="db-col-left">
+          <!-- ══════════════════════════════════════
+               SLOT GRID  (3 col × 3 row = 9 slots)
+               패널 요청서가 올 때마다 조립합니다
+          ══════════════════════════════════════ -->
+          <div class="slot-master-grid" id="slot-master-grid">
 
-            <!-- P1: Market Pulse -->
-            <div class="db-panel market-pulse-panel" style="height:110px;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-tachometer-alt"></i> 마켓 펄스</div>
-                <div class="db-panel-acts"><span class="db-mini-btn active">종합</span></div>
-              </div>
-              <div class="db-panel-body">
-                <div class="arc-gauge-wrap">
-                  <canvas id="arcGauge" width="90" height="52"></canvas>
-                  <div class="arc-center-label">
-                    <div class="arc-score positive">72</div>
-                    <div class="arc-sub">/ 100</div>
-                  </div>
-                </div>
-                <div class="pulse-meta">
-                  <span class="pulse-status-label pulse-risk-on">▲ RISK ON</span>
-                  <div class="pulse-metrics">
-                    <div class="pulse-metric-row"><span class="pulse-metric-label">모멘텀</span><span class="pulse-metric-val positive">+68</span></div>
-                    <div class="pulse-metric-row"><span class="pulse-metric-label">변동성</span><span class="pulse-metric-val positive">+74</span></div>
-                    <div class="pulse-metric-row"><span class="pulse-metric-label">유동성</span><span class="pulse-metric-val neutral">+58</span></div>
-                    <div class="pulse-metric-row"><span class="pulse-metric-label">크레딧</span><span class="pulse-metric-val positive">+81</span></div>
-                  </div>
-                </div>
-              </div>
+            <div class="panel-slot" id="slot-1" onclick="onSlotClick('1')">
+              <span class="slot-id">SLOT · 01</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
             </div>
 
-            <!-- P2: Regime Matrix -->
-            <div class="db-panel" style="height:120px;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-compass"></i> 경기 국면 매트릭스</div>
-                <div class="db-panel-acts"><span class="db-mini-btn">ISM</span><span class="db-mini-btn active">복합</span></div>
-              </div>
-              <div class="db-panel-body" style="padding:6px 8px;">
-                <div class="regime-quadrant">
-                  <div class="regime-cell rc-expansion">
-                    <div class="regime-label">확장</div>
-                    <div class="regime-sub">성장↑ 인플↑</div>
-                    <div class="regime-dot" style="background:#3FB950;"></div>
-                  </div>
-                  <div class="regime-cell rc-slowdown active-cell">
-                    <div class="regime-label" style="color:#FCD34D;">📍 현재</div>
-                    <div class="regime-sub">성장↓ 인플↑</div>
-                    <div class="regime-dot" style="background:#D29922;"></div>
-                  </div>
-                  <div class="regime-cell rc-recovery">
-                    <div class="regime-label">회복</div>
-                    <div class="regime-sub">성장↑ 인플↓</div>
-                    <div class="regime-dot" style="background:#22D3EE;"></div>
-                  </div>
-                  <div class="regime-cell rc-contraction">
-                    <div class="regime-label">수축</div>
-                    <div class="regime-sub">성장↓ 인플↓</div>
-                    <div class="regime-dot" style="background:#F85149;"></div>
-                  </div>
-                </div>
-              </div>
+            <div class="panel-slot" id="slot-2" onclick="onSlotClick('2')">
+              <span class="slot-id">SLOT · 02</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
             </div>
 
-            <!-- P3: Sector Momentum -->
-            <div class="db-panel" style="height:190px;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-chart-bar"></i> 섹터 모멘텀</div>
-                <div class="db-panel-acts">
-                  <span class="db-mini-btn active" onclick="setSectorPeriod(this,'1D')">1D</span>
-                  <span class="db-mini-btn" onclick="setSectorPeriod(this,'1W')">1W</span>
-                  <span class="db-mini-btn" onclick="setSectorPeriod(this,'1M')">1M</span>
-                </div>
-              </div>
-              <div class="db-panel-body" style="padding:6px 10px;" id="sector-bar-panel"></div>
+            <div class="panel-slot" id="slot-3" onclick="onSlotClick('3')">
+              <span class="slot-id">SLOT · 03</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
             </div>
 
-            <!-- P4: Stock Heatmap (flex-grow) -->
-            <div class="db-panel flex-grow">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-th"></i> 섹터별 주식 히트맵</div>
-                <div class="db-panel-acts">
-                  <span class="db-mini-btn active">시가총액</span>
-                  <span class="db-mini-btn">1D</span>
-                </div>
-              </div>
-              <div class="db-panel-body no-pad" id="treemap-panel"></div>
+            <div class="panel-slot" id="slot-4" onclick="onSlotClick('4')">
+              <span class="slot-id">SLOT · 04</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
+            </div>
+
+            <div class="panel-slot" id="slot-5" onclick="onSlotClick('5')">
+              <span class="slot-id">SLOT · 05</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
+            </div>
+
+            <div class="panel-slot" id="slot-6" onclick="onSlotClick('6')">
+              <span class="slot-id">SLOT · 06</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
+            </div>
+
+            <div class="panel-slot" id="slot-7" onclick="onSlotClick('7')">
+              <span class="slot-id">SLOT · 07</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
+            </div>
+
+            <div class="panel-slot" id="slot-8" onclick="onSlotClick('8')">
+              <span class="slot-id">SLOT · 08</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
+            </div>
+
+            <div class="panel-slot" id="slot-9" onclick="onSlotClick('9')">
+              <span class="slot-id">SLOT · 09</span>
+              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
+              <span class="slot-label">패널 대기</span>
             </div>
 
           </div>
-          <!-- /col-left -->
-
-          <!-- ═══ CENTER COLUMN ═══ -->
-          <div class="db-col-center">
-
-            <!-- Overlay Chart -->
-            <div class="db-panel" style="flex-shrink:0;height:48%;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-layer-group"></i> 오버레이 — 시계열 대비 증감률(%)</div>
-                <div class="db-panel-acts">
-                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'3M')">3M</span>
-                  <span class="db-mini-btn active" onclick="setOverlayPeriod(this,'1Y')">1Y</span>
-                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'3Y')">3Y</span>
-                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'5Y')">5Y</span>
-                </div>
-              </div>
-              <div class="overlay-chart-controls" id="overlay-series-row"></div>
-              <div class="db-panel-body no-pad" style="flex:1;">
-                <canvas id="overlayChart" style="width:100%;height:100%;"></canvas>
-              </div>
-            </div>
-
-            <!-- Yield Curve -->
-            <div class="db-panel" style="flex-shrink:0;height:26%;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-chart-line"></i> 국채 금리 장단기 곡선</div>
-                <div class="db-panel-acts">
-                  <span class="db-mini-btn active" onclick="setYieldPeriod(this,'1Y')">1Y</span>
-                  <span class="db-mini-btn" onclick="setYieldPeriod(this,'3Y')">3Y</span>
-                </div>
-              </div>
-              <div class="yield-kpi-row">
-                <div class="yield-kpi"><div class="yield-kpi-label">2Y</div><div class="yield-kpi-val negative">4.832%</div><div class="yield-kpi-chg negative">▼-5.1bp</div></div>
-                <div class="yield-kpi"><div class="yield-kpi-label">5Y</div><div class="yield-kpi-val negative">4.512%</div><div class="yield-kpi-chg negative">▼-3.8bp</div></div>
-                <div class="yield-kpi"><div class="yield-kpi-label">10Y</div><div class="yield-kpi-val negative">4.218%</div><div class="yield-kpi-chg negative">▼-3.2bp</div></div>
-                <div class="yield-kpi"><div class="yield-kpi-label">30Y</div><div class="yield-kpi-val negative">4.421%</div><div class="yield-kpi-chg negative">▼-2.1bp</div></div>
-                <div class="yield-kpi"><div class="yield-kpi-label">2s10s</div><div class="yield-kpi-val negative">-61bp</div><div class="yield-kpi-chg positive">▲+1.9bp</div></div>
-              </div>
-              <div class="db-panel-body no-pad" style="flex:1;">
-                <canvas id="yieldChart" style="width:100%;height:100%;"></canvas>
-              </div>
-            </div>
-
-            <!-- ── PANEL SLOT GRID ── -->
-            <div class="panel-slot-grid" id="panel-slot-grid">
-
-              <!-- Slot A -->
-              <div class="panel-slot" id="slot-A" onclick="onSlotClick('A')">
-                <span class="slot-id">SLOT · A</span>
-                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-                <span class="slot-label">패널 대기</span>
-                <span class="slot-hint">클릭하여 패널 추가</span>
-              </div>
-
-              <!-- Slot B -->
-              <div class="panel-slot" id="slot-B" onclick="onSlotClick('B')">
-                <span class="slot-id">SLOT · B</span>
-                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-                <span class="slot-label">패널 대기</span>
-                <span class="slot-hint">클릭하여 패널 추가</span>
-              </div>
-
-              <!-- Slot C -->
-              <div class="panel-slot" id="slot-C" onclick="onSlotClick('C')">
-                <span class="slot-id">SLOT · C</span>
-                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-                <span class="slot-label">패널 대기</span>
-                <span class="slot-hint">클릭하여 패널 추가</span>
-              </div>
-
-              <!-- Slot D -->
-              <div class="panel-slot" id="slot-D" onclick="onSlotClick('D')">
-                <span class="slot-id">SLOT · D</span>
-                <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-                <span class="slot-label">패널 대기</span>
-                <span class="slot-hint">클릭하여 패널 추가</span>
-              </div>
-
-            </div>
-            <!-- /panel-slot-grid -->
-
-          </div>
-          <!-- /col-center -->
-
-          <!-- ═══ RIGHT COLUMN ═══ -->
-          <div class="db-col-right">
-
-            <!-- Macro Scoreboard -->
-            <div class="db-panel" style="flex-shrink:0;height:33%;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-broadcast-tower"></i> 매크로 전광판</div>
-                <div class="db-panel-acts">
-                  <span class="db-mini-btn active" onclick="setMacroTab(this,'fx')">환율</span>
-                  <span class="db-mini-btn" onclick="setMacroTab(this,'idx')">지수</span>
-                  <span class="db-mini-btn" onclick="setMacroTab(this,'cmdty')">원자재</span>
-                </div>
-              </div>
-              <div class="macro-board-list" id="macro-board-list"></div>
-            </div>
-
-            <!-- Portfolio Mini -->
-            <div class="db-panel" style="flex-shrink:0;height:22%;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-briefcase"></i> 포트폴리오 대시보드</div>
-                <div class="db-panel-acts"><span class="db-mini-btn" onclick="navigate('portfolio')">전체보기 →</span></div>
-              </div>
-              <div class="db-panel-body" style="padding:8px 10px;">
-                <div class="pf-mini-layout">
-                  <div>
-                    <div class="pf-mini-donut"><canvas id="pfMiniDonut"></canvas>
-                      <div class="pf-mini-donut-center"><div class="pf-mini-aum">$1.24M</div><div class="pf-mini-label">AUM</div></div>
-                    </div>
-                    <div style="margin-top:4px;text-align:center;">
-                      <div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;" class="positive">+14.8%</div>
-                      <div style="font-size:8px;color:var(--text-muted);">YTD</div>
-                    </div>
-                  </div>
-                  <div class="pf-mini-table" id="pf-mini-table"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Calendar -->
-            <div class="db-panel" style="flex-shrink:0;">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-calendar-alt"></i> 매크로 캘린더</div>
-                <div class="db-panel-acts" id="cal-month-label" style="font-size:9px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"></div>
-              </div>
-              <div class="db-panel-body" style="padding:5px 8px;" id="db-calendar"></div>
-            </div>
-
-            <!-- Upcoming Events (flex-grow) -->
-            <div class="db-panel flex-grow">
-              <div class="db-panel-hdr">
-                <div class="db-panel-title"><i class="fas fa-clock"></i> 예정 이벤트</div>
-                <div class="db-panel-acts"><span class="db-mini-btn active">7D</span><span class="db-mini-btn">30D</span></div>
-              </div>
-              <div class="event-list" id="event-list"></div>
-            </div>
-
-          </div>
-          <!-- /col-right -->
+          <!-- /slot-master-grid -->
 
         </div>
         <!-- /db-body -->
       \`;
 
-      // After HTML is built, run all chart inits
-      requestAnimationFrame(() => {
-        initArcGauge();
-        initSectorBars();
-        initTreemap();
-        initOverlayChart();
-        initYieldChart();
-        buildMacroBoard('fx');
-        buildPfMiniDonut();
-        buildPfMiniTable();
-        buildCalendar();
-        buildEventList();
-      });
+      // 패널 요청서 수신 후 각 슬롯에 조립 예정
+      // requestAnimationFrame(() => { ... });
     }
 
     // ── ARC GAUGE ──
