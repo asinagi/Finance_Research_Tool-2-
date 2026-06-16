@@ -450,6 +450,12 @@ app.get('*', (c) => {
       background: var(--bg-primary);
     }
 
+    /* Dashboard page overrides workspace padding */
+    #workspace:has(#page-dashboard.active) {
+      padding: 0;
+      overflow: hidden;
+    }
+
     /* ===== PAGE VIEWS ===== */
     .page-view { display: none; }
     .page-view.active { display: block; }
@@ -847,6 +853,497 @@ app.get('*', (c) => {
     .heatmap-correlation-row {
       border-top: 1px solid var(--border-color);
     }
+
+    /* ===== MAIN DASHBOARD LAYOUT ===== */
+    #page-dashboard {
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .db-ticker-strip {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 16px;
+      height: 32px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .db-ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 12px;
+      border-right: 1px solid var(--border-color);
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .db-ticker-sym { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
+    .db-ticker-val { font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .db-ticker-chg { font-size: 9px; font-family: 'JetBrains Mono', monospace; }
+
+    .db-body {
+      flex: 1;
+      overflow: hidden;
+      display: grid;
+      /* 3-column: left 210px | center flex | right 240px */
+      grid-template-columns: 210px 1fr 240px;
+      grid-template-rows: 1fr;
+      gap: 0;
+    }
+
+    /* ── LEFT COLUMN ── */
+    .db-col-left {
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── CENTER COLUMN ── */
+    .db-col-center {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border-color);
+    }
+
+    /* ── RIGHT COLUMN ── */
+    .db-col-right {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── PANEL CARD ── */
+    .db-panel {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .db-panel.flex-grow { flex: 1; overflow: hidden; }
+
+    .db-panel-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+      height: 30px;
+    }
+
+    .db-panel-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .db-panel-title i { font-size: 9px; color: var(--accent-blue); }
+
+    .db-panel-acts { display: flex; align-items: center; gap: 4px; }
+
+    .db-mini-btn {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.15s;
+    }
+
+    .db-mini-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .db-mini-btn.active { background: rgba(59,130,246,0.12); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    .db-panel-body {
+      flex: 1;
+      overflow: hidden;
+      padding: 8px 10px;
+      position: relative;
+    }
+
+    .db-panel-body.no-pad { padding: 0; }
+
+    /* ── MARKET PULSE (ARC GAUGE) ── */
+    .market-pulse-panel .db-panel-body {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+    }
+
+    .arc-gauge-wrap {
+      position: relative;
+      width: 90px;
+      height: 52px;
+      flex-shrink: 0;
+    }
+
+    .arc-gauge-wrap canvas { position: absolute; top: 0; left: 0; }
+
+    .arc-center-label {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .arc-score { font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+    .arc-sub   { font-size: 8px; color: var(--text-muted); margin-top: 1px; }
+
+    .pulse-meta { flex: 1; }
+    .pulse-status-label {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      display: inline-block;
+    }
+
+    .pulse-risk-on  { background: rgba(63,185,80,0.15); color: #3FB950; border: 1px solid rgba(63,185,80,0.3); }
+    .pulse-risk-off { background: rgba(248,81,73,0.15); color: #F85149; border: 1px solid rgba(248,81,73,0.3); }
+    .pulse-neutral  { background: rgba(210,153,34,0.15); color: #D29922; border: 1px solid rgba(210,153,34,0.3); }
+
+    .pulse-metrics { display: flex; flex-direction: column; gap: 3px; }
+    .pulse-metric-row { display: flex; justify-content: space-between; align-items: center; }
+    .pulse-metric-label { font-size: 9px; color: var(--text-muted); }
+    .pulse-metric-val { font-size: 9px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+    /* ── REGIME MATRIX ── */
+    .regime-quadrant {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 2px;
+      height: 100%;
+    }
+
+    .regime-cell {
+      border-radius: 4px;
+      padding: 5px 7px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: filter 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .regime-cell:hover { filter: brightness(1.2); }
+
+    .regime-cell.active-cell::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+    }
+
+    .regime-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; }
+    .regime-sub   { font-size: 8px; color: rgba(255,255,255,0.5); }
+    .regime-dot   { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.8); align-self: flex-end; }
+
+    .rc-expansion   { background: rgba(63,185,80,0.2);  border: 1px solid rgba(63,185,80,0.3); }
+    .rc-slowdown    { background: rgba(210,153,34,0.2); border: 1px solid rgba(210,153,34,0.3); }
+    .rc-contraction { background: rgba(248,81,73,0.2);  border: 1px solid rgba(248,81,73,0.3); }
+    .rc-recovery    { background: rgba(34,211,238,0.2); border: 1px solid rgba(34,211,238,0.3); }
+
+    /* ── SECTOR MOMENTUM ── */
+    .sector-bar-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .sector-bar-row {
+      display: grid;
+      grid-template-columns: 46px 1fr 36px;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sector-name { font-size: 9px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sector-bar-track { height: 5px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+    .sector-bar-fill  { height: 100%; border-radius: 2px; transition: width 1s ease-out; }
+    .sector-pct { font-size: 9px; font-family: 'JetBrains Mono', monospace; text-align: right; }
+
+    /* ── TREEMAP (Stock Heatmap) ── */
+    .treemap-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      overflow: hidden;
+    }
+
+    .treemap-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: filter 0.15s;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .treemap-cell:hover { filter: brightness(1.3); }
+    .treemap-ticker { font-size: 9px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.9); }
+    .treemap-pct    { font-size: 8px; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.7); }
+
+    /* ── CENTER: OVERLAY CHART ── */
+    .db-center-top {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .overlay-chart-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .overlay-series-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-tertiary);
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+    }
+
+    .overlay-series-badge.active { border-color: currentColor; }
+    .overlay-series-badge .swatch { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── YIELD CURVE ── */
+    .yield-kpi-row {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .yield-kpi {
+      flex: 1;
+      text-align: center;
+      padding: 5px 4px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .yield-kpi:last-child { border-right: none; }
+    .yield-kpi-label { font-size: 8px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .yield-kpi-val   { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin: 1px 0; }
+    .yield-kpi-chg   { font-size: 8px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── CENTER BOTTOM GRID ── */
+    .db-center-bottom {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      overflow: hidden;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* ── NEWS FEED ── */
+    .news-feed-list { overflow-y: auto; height: 100%; }
+
+    .news-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .news-item:hover { background: var(--bg-hover); }
+
+    .news-item-meta { display: flex; align-items: center; gap: 5px; }
+    .news-time   { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+    .news-badge  { font-size: 8px; padding: 1px 5px; border-radius: 3px; font-weight: 600; }
+    .nb-macro    { background: rgba(59,130,246,0.15); color: #60A5FA; }
+    .nb-sector   { background: rgba(167,139,250,0.15); color: #C4B5FD; }
+    .nb-alert    { background: rgba(255,123,114,0.15); color: #FF7B72; }
+    .nb-crypto   { background: rgba(245,158,11,0.15); color: #FCD34D; }
+
+    .news-headline { font-size: 11px; color: var(--text-primary); line-height: 1.4; font-weight: 500; }
+    .news-sub      { font-size: 9px; color: var(--text-muted); }
+
+    /* ── CORR HEATMAP (small) ── */
+    .small-heatmap-grid {
+      display: grid;
+      gap: 1px;
+      height: 100%;
+      align-content: start;
+    }
+
+    /* ── RIGHT: MACRO SCOREBOARD ── */
+    .macro-board-list { overflow-y: auto; height: 100%; }
+
+    .macro-board-row {
+      display: grid;
+      grid-template-columns: 56px 1fr 44px 32px;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-bottom: 1px solid rgba(33,38,45,0.6);
+      transition: background 0.12s;
+    }
+
+    .macro-board-row:hover { background: var(--bg-hover); }
+
+    .mb-sym  { font-size: 9px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
+    .mb-bar-track { height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+    .mb-bar-fill  { height: 100%; border-radius: 2px; }
+    .mb-val  { font-size: 9px; font-family: 'JetBrains Mono', monospace; text-align: right; }
+    .mb-chg  { font-size: 8px; font-family: 'JetBrains Mono', monospace; text-align: right; font-weight: 600; }
+
+    /* ── RIGHT: PORTFOLIO MINI ── */
+    .pf-mini-layout {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 8px;
+      height: 100%;
+      align-items: start;
+    }
+
+    .pf-mini-donut { position: relative; width: 80px; height: 80px; }
+
+    .pf-mini-donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      text-align: center;
+    }
+
+    .pf-mini-aum   { font-size: 9px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-accent); line-height: 1.1; }
+    .pf-mini-label { font-size: 7px; color: var(--text-muted); }
+
+    .pf-mini-table { overflow-y: auto; max-height: 100%; }
+
+    .pf-mini-row {
+      display: grid;
+      grid-template-columns: 30px 1fr 36px 36px;
+      gap: 4px;
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(33,38,45,0.6);
+      align-items: center;
+    }
+
+    .pf-mini-ticker { font-size: 9px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); }
+    .pf-mini-wgt    { font-size: 8px; color: var(--text-muted); }
+    .pf-mini-ret    { font-size: 9px; font-family: 'JetBrains Mono', monospace; text-align: right; font-weight: 600; }
+    .pf-mini-1d     { font-size: 8px; font-family: 'JetBrains Mono', monospace; text-align: right; }
+
+    /* ── RIGHT: CALENDAR ── */
+    .db-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      font-size: 9px;
+    }
+
+    .cal-dow { text-align: center; font-size: 8px; color: var(--text-muted); padding: 2px 0; font-weight: 600; }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+      gap: 1px;
+    }
+
+    .cal-day:hover { background: var(--bg-hover); }
+    .cal-day.today { background: rgba(59,130,246,0.2); color: var(--accent-blue); font-weight: 700; }
+    .cal-day.has-event::after { content: ''; width: 3px; height: 3px; border-radius: 50%; background: var(--accent-blue); }
+    .cal-day.has-high::after  { background: #FF7B72; }
+
+    .cal-event-dot { width: 3px; height: 3px; border-radius: 50%; }
+
+    /* ── RIGHT: UPCOMING EVENTS ── */
+    .event-list { overflow-y: auto; height: 100%; }
+
+    .event-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 5px 10px;
+      border-bottom: 1px solid rgba(33,38,45,0.6);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .event-item:hover { background: var(--bg-hover); }
+
+    .event-date-badge {
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-blue);
+      background: rgba(59,130,246,0.1);
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .event-title { font-size: 10px; color: var(--text-primary); line-height: 1.3; font-weight: 500; }
+    .event-sub   { font-size: 8px; color: var(--text-muted); }
+
+    .event-impact {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .impact-hi  { background: rgba(255,123,114,0.15); color: #FF7B72; }
+    .impact-mid { background: rgba(210,153,34,0.15);  color: #D29922; }
+    .impact-lo  { background: rgba(72,79,88,0.15);    color: #8B949E; }
 
     /* ===== ISSUE PAGE: TOP HEADER ===== */
     .issue-top-header {
@@ -1721,6 +2218,17 @@ app.get('*', (c) => {
       <!-- Navigation -->
       <div class="sidebar-nav" id="sidebar-nav">
 
+        <!-- Dashboard Home -->
+        <div class="nav-section">
+          <div class="nav-item active" data-page="dashboard" data-label="대시보드">
+            <span class="nav-item-icon"><i class="fas fa-th-large"></i></span>
+            <span class="nav-item-label" style="font-weight:600;">대시보드</span>
+            <span class="nav-status-badge badge-focus">HOME</span>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
         <!-- Module Section -->
         <div class="nav-section">
           <div class="nav-section-title">모듈</div>
@@ -1750,7 +2258,7 @@ app.get('*', (c) => {
             <span class="nav-item-label">국면 모니터</span>
           </div>
 
-          <div class="nav-item active" data-page="portfolio" data-label="포트폴리오·리스크">
+          <div class="nav-item" data-page="portfolio" data-label="포트폴리오·리스크">
             <span class="nav-item-index">05</span>
             <span class="nav-item-icon"><i class="fas fa-briefcase"></i></span>
             <span class="nav-item-label">포트폴리오·리스크</span>
@@ -1857,8 +2365,13 @@ app.get('*', (c) => {
       <!-- Workspace -->
       <main id="workspace">
 
+        <!-- ===== PAGE: MAIN DASHBOARD ===== -->
+        <div class="page-view active fade-in" id="page-dashboard">
+          <!-- Dashboard content injected by JS -->
+        </div>
+
         <!-- ===== PAGE: PORTFOLIO & RISK ===== -->
-        <div class="page-view active fade-in" id="page-portfolio">
+        <div class="page-view fade-in" id="page-portfolio">
 
           <!-- Market Pulse Strip -->
           <div class="market-pulse-strip">
@@ -2481,7 +2994,7 @@ app.get('*', (c) => {
     //  STATE MANAGEMENT (Vanilla JS Global Store)
     // ============================================================
     const AppState = {
-      activePage: 'portfolio',
+      activePage: 'dashboard',
       sidebarCollapsed: false,
       portfolioView: 'asset',   // 'asset' | 'ticker'
       corrPreset: '1Y',
@@ -2489,6 +3002,7 @@ app.get('*', (c) => {
 
       // Page metadata
       pagesMeta: {
+        'dashboard':    { label: '통합 관제 대시보드',    section: '홈' },
         'issue':        { label: '이슈 수집·요약·태깅',  section: '모듈' },
         'research':     { label: '리서치 클러스터',       section: '모듈' },
         'calendar':     { label: '매크로 캘린더',         section: '모듈' },
@@ -2923,6 +3437,793 @@ app.get('*', (c) => {
         ds.data = generateRollingData(points, (i + 1) * 0.2);
       });
       timelineChart.update();
+    }
+
+    // ============================================================
+    //  MAIN DASHBOARD — BUILD & CHARTS
+    // ============================================================
+    let dbCharts = {};
+
+    function buildDashboard() {
+      const el = document.getElementById('page-dashboard');
+      if (!el || el.dataset.built) return;
+      el.dataset.built = '1';
+
+      el.innerHTML = \`
+        <!-- Ticker Strip -->
+        <div class="db-ticker-strip">
+          <div class="db-ticker-item"><span class="db-ticker-sym">SPX</span><span class="db-ticker-val positive">5,421.8</span><span class="db-ticker-chg positive">▲+0.43%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">NDX</span><span class="db-ticker-val positive">19,284</span><span class="db-ticker-chg positive">▲+0.71%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">DJI</span><span class="db-ticker-val positive">38,742</span><span class="db-ticker-chg positive">▲+0.22%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">RUT</span><span class="db-ticker-val negative">2,014</span><span class="db-ticker-chg negative">▼-0.31%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">VIX</span><span class="db-ticker-val neutral">13.84</span><span class="db-ticker-chg negative">▼-0.92%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">US10Y</span><span class="db-ticker-val negative">4.218%</span><span class="db-ticker-chg negative">▼-3.2bp</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">DXY</span><span class="db-ticker-val negative">104.42</span><span class="db-ticker-chg negative">▼-0.18%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">GOLD</span><span class="db-ticker-val positive">2,384</span><span class="db-ticker-chg positive">▲+0.29%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">WTI</span><span class="db-ticker-val positive">82.16</span><span class="db-ticker-chg positive">▲+0.57%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">BTC</span><span class="db-ticker-val positive">68,412</span><span class="db-ticker-chg positive">▲+1.24%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">ETH</span><span class="db-ticker-val positive">3,641</span><span class="db-ticker-chg positive">▲+0.88%</span></div>
+          <div class="db-ticker-item"><span class="db-ticker-sym">USD/KRW</span><span class="db-ticker-val neutral">1,381</span><span class="db-ticker-chg positive">▲+0.12%</span></div>
+        </div>
+
+        <!-- Main 3-Column Body -->
+        <div class="db-body">
+
+          <!-- ═══ LEFT COLUMN ═══ -->
+          <div class="db-col-left">
+
+            <!-- P1: Market Pulse -->
+            <div class="db-panel market-pulse-panel" style="height:110px;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-tachometer-alt"></i> 마켓 펄스</div>
+                <div class="db-panel-acts"><span class="db-mini-btn active">종합</span></div>
+              </div>
+              <div class="db-panel-body">
+                <div class="arc-gauge-wrap">
+                  <canvas id="arcGauge" width="90" height="52"></canvas>
+                  <div class="arc-center-label">
+                    <div class="arc-score positive">72</div>
+                    <div class="arc-sub">/ 100</div>
+                  </div>
+                </div>
+                <div class="pulse-meta">
+                  <span class="pulse-status-label pulse-risk-on">▲ RISK ON</span>
+                  <div class="pulse-metrics">
+                    <div class="pulse-metric-row"><span class="pulse-metric-label">모멘텀</span><span class="pulse-metric-val positive">+68</span></div>
+                    <div class="pulse-metric-row"><span class="pulse-metric-label">변동성</span><span class="pulse-metric-val positive">+74</span></div>
+                    <div class="pulse-metric-row"><span class="pulse-metric-label">유동성</span><span class="pulse-metric-val neutral">+58</span></div>
+                    <div class="pulse-metric-row"><span class="pulse-metric-label">크레딧</span><span class="pulse-metric-val positive">+81</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- P2: Regime Matrix -->
+            <div class="db-panel" style="height:120px;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-compass"></i> 경기 국면 매트릭스</div>
+                <div class="db-panel-acts"><span class="db-mini-btn">ISM</span><span class="db-mini-btn active">복합</span></div>
+              </div>
+              <div class="db-panel-body" style="padding:6px 8px;">
+                <div class="regime-quadrant">
+                  <div class="regime-cell rc-expansion">
+                    <div class="regime-label">확장</div>
+                    <div class="regime-sub">성장↑ 인플↑</div>
+                    <div class="regime-dot" style="background:#3FB950;"></div>
+                  </div>
+                  <div class="regime-cell rc-slowdown active-cell">
+                    <div class="regime-label" style="color:#FCD34D;">📍 현재</div>
+                    <div class="regime-sub">성장↓ 인플↑</div>
+                    <div class="regime-dot" style="background:#D29922;"></div>
+                  </div>
+                  <div class="regime-cell rc-recovery">
+                    <div class="regime-label">회복</div>
+                    <div class="regime-sub">성장↑ 인플↓</div>
+                    <div class="regime-dot" style="background:#22D3EE;"></div>
+                  </div>
+                  <div class="regime-cell rc-contraction">
+                    <div class="regime-label">수축</div>
+                    <div class="regime-sub">성장↓ 인플↓</div>
+                    <div class="regime-dot" style="background:#F85149;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- P3: Sector Momentum -->
+            <div class="db-panel" style="height:190px;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-chart-bar"></i> 섹터 모멘텀</div>
+                <div class="db-panel-acts">
+                  <span class="db-mini-btn active" onclick="setSectorPeriod(this,'1D')">1D</span>
+                  <span class="db-mini-btn" onclick="setSectorPeriod(this,'1W')">1W</span>
+                  <span class="db-mini-btn" onclick="setSectorPeriod(this,'1M')">1M</span>
+                </div>
+              </div>
+              <div class="db-panel-body" style="padding:6px 10px;" id="sector-bar-panel"></div>
+            </div>
+
+            <!-- P4: Stock Heatmap (flex-grow) -->
+            <div class="db-panel flex-grow">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-th"></i> 섹터별 주식 히트맵</div>
+                <div class="db-panel-acts">
+                  <span class="db-mini-btn active">시가총액</span>
+                  <span class="db-mini-btn">1D</span>
+                </div>
+              </div>
+              <div class="db-panel-body no-pad" id="treemap-panel"></div>
+            </div>
+
+          </div>
+          <!-- /col-left -->
+
+          <!-- ═══ CENTER COLUMN ═══ -->
+          <div class="db-col-center">
+
+            <!-- Overlay Chart -->
+            <div class="db-panel" style="flex-shrink:0;height:48%;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-layer-group"></i> 오버레이 — 시계열 대비 증감률(%)</div>
+                <div class="db-panel-acts">
+                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'3M')">3M</span>
+                  <span class="db-mini-btn active" onclick="setOverlayPeriod(this,'1Y')">1Y</span>
+                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'3Y')">3Y</span>
+                  <span class="db-mini-btn" onclick="setOverlayPeriod(this,'5Y')">5Y</span>
+                </div>
+              </div>
+              <div class="overlay-chart-controls" id="overlay-series-row"></div>
+              <div class="db-panel-body no-pad" style="flex:1;">
+                <canvas id="overlayChart" style="width:100%;height:100%;"></canvas>
+              </div>
+            </div>
+
+            <!-- Yield Curve -->
+            <div class="db-panel" style="flex-shrink:0;height:26%;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-chart-line"></i> 국채 금리 장단기 곡선</div>
+                <div class="db-panel-acts">
+                  <span class="db-mini-btn active" onclick="setYieldPeriod(this,'1Y')">1Y</span>
+                  <span class="db-mini-btn" onclick="setYieldPeriod(this,'3Y')">3Y</span>
+                </div>
+              </div>
+              <div class="yield-kpi-row">
+                <div class="yield-kpi"><div class="yield-kpi-label">2Y</div><div class="yield-kpi-val negative">4.832%</div><div class="yield-kpi-chg negative">▼-5.1bp</div></div>
+                <div class="yield-kpi"><div class="yield-kpi-label">5Y</div><div class="yield-kpi-val negative">4.512%</div><div class="yield-kpi-chg negative">▼-3.8bp</div></div>
+                <div class="yield-kpi"><div class="yield-kpi-label">10Y</div><div class="yield-kpi-val negative">4.218%</div><div class="yield-kpi-chg negative">▼-3.2bp</div></div>
+                <div class="yield-kpi"><div class="yield-kpi-label">30Y</div><div class="yield-kpi-val negative">4.421%</div><div class="yield-kpi-chg negative">▼-2.1bp</div></div>
+                <div class="yield-kpi"><div class="yield-kpi-label">2s10s</div><div class="yield-kpi-val negative">-61bp</div><div class="yield-kpi-chg positive">▲+1.9bp</div></div>
+              </div>
+              <div class="db-panel-body no-pad" style="flex:1;">
+                <canvas id="yieldChart" style="width:100%;height:100%;"></canvas>
+              </div>
+            </div>
+
+            <!-- Bottom 2-col -->
+            <div class="db-center-bottom">
+              <!-- News Feed -->
+              <div class="db-panel" style="border-right:1px solid var(--border-color); overflow:hidden; display:flex; flex-direction:column;">
+                <div class="db-panel-hdr">
+                  <div class="db-panel-title"><i class="fas fa-newspaper"></i> 시황 뉴스·리서치</div>
+                  <div class="db-panel-acts"><span class="db-mini-btn active">전체</span><span class="db-mini-btn">매크로</span></div>
+                </div>
+                <div class="news-feed-list" id="news-feed-list"></div>
+              </div>
+
+              <!-- Correlation Heatmap -->
+              <div class="db-panel" style="overflow:hidden; display:flex; flex-direction:column;">
+                <div class="db-panel-hdr">
+                  <div class="db-panel-title"><i class="fas fa-th"></i> 자산 상관관계 매트릭스</div>
+                  <div class="db-panel-acts"><span class="db-mini-btn active">1Y</span><span class="db-mini-btn">3Y</span></div>
+                </div>
+                <div class="db-panel-body no-pad" style="flex:1;padding:6px 8px;" id="db-corr-heatmap"></div>
+              </div>
+            </div>
+
+          </div>
+          <!-- /col-center -->
+
+          <!-- ═══ RIGHT COLUMN ═══ -->
+          <div class="db-col-right">
+
+            <!-- Macro Scoreboard -->
+            <div class="db-panel" style="flex-shrink:0;height:33%;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-broadcast-tower"></i> 매크로 전광판</div>
+                <div class="db-panel-acts">
+                  <span class="db-mini-btn active" onclick="setMacroTab(this,'fx')">환율</span>
+                  <span class="db-mini-btn" onclick="setMacroTab(this,'idx')">지수</span>
+                  <span class="db-mini-btn" onclick="setMacroTab(this,'cmdty')">원자재</span>
+                </div>
+              </div>
+              <div class="macro-board-list" id="macro-board-list"></div>
+            </div>
+
+            <!-- Portfolio Mini -->
+            <div class="db-panel" style="flex-shrink:0;height:22%;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-briefcase"></i> 포트폴리오 대시보드</div>
+                <div class="db-panel-acts"><span class="db-mini-btn" onclick="navigate('portfolio')">전체보기 →</span></div>
+              </div>
+              <div class="db-panel-body" style="padding:8px 10px;">
+                <div class="pf-mini-layout">
+                  <div>
+                    <div class="pf-mini-donut"><canvas id="pfMiniDonut"></canvas>
+                      <div class="pf-mini-donut-center"><div class="pf-mini-aum">$1.24M</div><div class="pf-mini-label">AUM</div></div>
+                    </div>
+                    <div style="margin-top:4px;text-align:center;">
+                      <div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;" class="positive">+14.8%</div>
+                      <div style="font-size:8px;color:var(--text-muted);">YTD</div>
+                    </div>
+                  </div>
+                  <div class="pf-mini-table" id="pf-mini-table"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="db-panel" style="flex-shrink:0;">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-calendar-alt"></i> 매크로 캘린더</div>
+                <div class="db-panel-acts" id="cal-month-label" style="font-size:9px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"></div>
+              </div>
+              <div class="db-panel-body" style="padding:5px 8px;" id="db-calendar"></div>
+            </div>
+
+            <!-- Upcoming Events (flex-grow) -->
+            <div class="db-panel flex-grow">
+              <div class="db-panel-hdr">
+                <div class="db-panel-title"><i class="fas fa-clock"></i> 예정 이벤트</div>
+                <div class="db-panel-acts"><span class="db-mini-btn active">7D</span><span class="db-mini-btn">30D</span></div>
+              </div>
+              <div class="event-list" id="event-list"></div>
+            </div>
+
+          </div>
+          <!-- /col-right -->
+
+        </div>
+        <!-- /db-body -->
+      \`;
+
+      // After HTML is built, run all chart inits
+      requestAnimationFrame(() => {
+        initArcGauge();
+        initSectorBars();
+        initTreemap();
+        initOverlayChart();
+        initYieldChart();
+        buildNewsFeed();
+        buildDbCorrHeatmap();
+        buildMacroBoard('fx');
+        buildPfMiniDonut();
+        buildPfMiniTable();
+        buildCalendar();
+        buildEventList();
+      });
+    }
+
+    // ── ARC GAUGE ──
+    function initArcGauge() {
+      const canvas = document.getElementById('arcGauge');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = 90, h = 52;
+      canvas.width = w; canvas.height = h;
+      const cx = w/2, cy = h - 4;
+      const r = 38, lw = 8;
+      const score = 72; // 0-100
+      const startAngle = Math.PI;
+      const endAngle   = 2 * Math.PI;
+      const valAngle   = startAngle + (score / 100) * Math.PI;
+
+      // BG arc
+      ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.strokeStyle = '#1C2232'; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+
+      // Value arc — gradient from red → yellow → green
+      const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
+      grad.addColorStop(0,   '#F85149');
+      grad.addColorStop(0.5, '#D29922');
+      grad.addColorStop(1,   '#3FB950');
+      ctx.beginPath(); ctx.arc(cx, cy, r, startAngle, valAngle);
+      ctx.strokeStyle = grad; ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.stroke();
+    }
+
+    // ── SECTOR BARS ──
+    const SECTOR_DATA = {
+      '1D': [
+        { name:'기술', pct:+1.42 }, { name:'헬스케어', pct:+0.83 }, { name:'커뮤니케이션', pct:+0.71 },
+        { name:'임의소비재', pct:+0.54 }, { name:'금융', pct:+0.32 }, { name:'산업재', pct:+0.18 },
+        { name:'필수소비재', pct:-0.12 }, { name:'유틸리티', pct:-0.34 }, { name:'에너지', pct:-0.41 },
+        { name:'소재', pct:-0.58 }, { name:'부동산', pct:-0.92 },
+      ],
+      '1W': [
+        { name:'기술', pct:+3.21 }, { name:'커뮤니케이션', pct:+2.44 }, { name:'임의소비재', pct:+1.87 },
+        { name:'헬스케어', pct:+1.12 }, { name:'금융', pct:+0.74 }, { name:'산업재', pct:+0.43 },
+        { name:'소재', pct:-0.28 }, { name:'필수소비재', pct:-0.51 }, { name:'에너지', pct:-0.84 },
+        { name:'유틸리티', pct:-1.12 }, { name:'부동산', pct:-2.14 },
+      ],
+      '1M': [
+        { name:'기술', pct:+8.41 }, { name:'임의소비재', pct:+5.88 }, { name:'커뮤니케이션', pct:+4.72 },
+        { name:'헬스케어', pct:+2.11 }, { name:'금융', pct:+1.43 }, { name:'산업재', pct:+0.92 },
+        { name:'소재', pct:-0.64 }, { name:'필수소비재', pct:-1.22 }, { name:'부동산', pct:-3.14 },
+        { name:'에너지', pct:-3.88 }, { name:'유틸리티', pct:-4.51 },
+      ],
+    };
+
+    function setSectorPeriod(btn, period) {
+      document.querySelectorAll('#sector-bar-panel').forEach(() => {});
+      document.querySelectorAll('.db-panel-acts .db-mini-btn').forEach(b => {
+        if (['1D','1W','1M'].includes(b.textContent)) b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      renderSectorBars(period);
+    }
+
+    function renderSectorBars(period) {
+      const container = document.getElementById('sector-bar-panel');
+      if (!container) return;
+      const rows = SECTOR_DATA[period] || SECTOR_DATA['1D'];
+      const maxAbs = Math.max(...rows.map(r => Math.abs(r.pct)));
+      container.innerHTML = '<div class="sector-bar-list">' +
+        rows.map(r => {
+          const pct = r.pct;
+          const w = Math.round((Math.abs(pct) / maxAbs) * 100);
+          const color = pct >= 0 ? '#3FB950' : '#F85149';
+          const cl = pct >= 0 ? 'positive' : 'negative';
+          return \`<div class="sector-bar-row">
+            <span class="sector-name">\${r.name}</span>
+            <div class="sector-bar-track"><div class="sector-bar-fill" style="width:\${w}%;background:\${color};"></div></div>
+            <span class="sector-pct \${cl}">\${pct>0?'+':''}\${pct.toFixed(2)}%</span>
+          </div>\`;
+        }).join('') + '</div>';
+    }
+
+    function initSectorBars() { renderSectorBars('1D'); }
+
+    // ── TREEMAP ──
+    const TREEMAP_DATA = [
+      { sym:'NVDA', pct:+2.14, size:9 }, { sym:'AAPL', pct:+0.92, size:11 }, { sym:'MSFT', pct:+0.71, size:10 },
+      { sym:'AMZN', pct:+1.34, size:8 }, { sym:'META', pct:+1.88, size:7 }, { sym:'GOOGL', pct:+0.44, size:8 },
+      { sym:'BRK.B', pct:+0.18, size:6 }, { sym:'TSM', pct:+1.21, size:5 },
+      { sym:'TSLA', pct:-0.84, size:6 }, { sym:'AMGN', pct:-0.54, size:4 },
+      { sym:'XOM', pct:-0.41, size:5 }, { sym:'CVX', pct:-0.38, size:4 },
+      { sym:'BTC', pct:+1.24, size:4 }, { sym:'GLD', pct:+0.28, size:3 },
+      { sym:'TLT', pct:+0.31, size:3 }, { sym:'SPY', pct:+0.43, size:3 },
+      { sym:'LLY', pct:+0.83, size:4 }, { sym:'JPM', pct:+0.52, size:4 },
+    ];
+
+    function initTreemap() {
+      const container = document.getElementById('treemap-panel');
+      if (!container) return;
+      const total = TREEMAP_DATA.reduce((s, d) => s + d.size, 0);
+      container.innerHTML = '<div class="treemap-container" id="treemap-inner"></div>';
+      const inner = document.getElementById('treemap-inner');
+      TREEMAP_DATA.forEach(d => {
+        const cell = document.createElement('div');
+        cell.className = 'treemap-cell';
+        const flexBasis = Math.max(((d.size / total) * 100 * 1.8), 10);
+        cell.style.cssText = \`
+          flex: \${d.size} \${d.size} \${flexBasis}%;
+          background: \${d.pct >= 0
+            ? \`rgba(63,185,80,\${Math.min(0.15 + Math.abs(d.pct)*0.12, 0.6)})\`
+            : \`rgba(248,81,73,\${Math.min(0.15 + Math.abs(d.pct)*0.12, 0.6)})\`
+          };
+          border: 1px solid \${d.pct >= 0 ? 'rgba(63,185,80,0.2)' : 'rgba(248,81,73,0.2)'};
+        \`;
+        cell.innerHTML = \`<span class="treemap-ticker">\${d.sym}</span><span class="treemap-pct">\${d.pct>0?'+':''}\${d.pct.toFixed(2)}%</span>\`;
+        inner.appendChild(cell);
+      });
+    }
+
+    // ── OVERLAY CHART ──
+    function genOverlayData(n, seed, amp) {
+      const arr = [0];
+      let v = 0;
+      for (let i = 1; i < n; i++) {
+        v += (Math.random() - 0.48 + seed * 0.005) * amp;
+        arr.push(parseFloat(v.toFixed(2)));
+      }
+      return arr;
+    }
+
+    function makeOverlayLabels(n) {
+      const labels = [];
+      const now = new Date();
+      for (let i = n - 1; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 86400000);
+        labels.push((d.getMonth()+1)+'/'+d.getDate());
+      }
+      return labels;
+    }
+
+    const OVERLAY_SERIES = [
+      { id:'spy',  label:'S&P 500',    color:'#3B82F6', seed:0.6, amp:0.8 },
+      { id:'qqq',  label:'NASDAQ',     color:'#22D3EE', seed:0.8, amp:1.1 },
+      { id:'tlt',  label:'TLT (채권)', color:'#F59E0B', seed:-0.2, amp:0.6 },
+      { id:'gld',  label:'GOLD',       color:'#10B981', seed:0.3, amp:0.5 },
+      { id:'btc',  label:'BTC',        color:'#A78BFA', seed:1.2, amp:2.0 },
+    ];
+
+    let overlayActiveIds = new Set(['spy','qqq','tlt','gld','btc']);
+    let overlayChart2 = null;
+
+    function buildOverlaySeriesBadges() {
+      const row = document.getElementById('overlay-series-row');
+      if (!row) return;
+      row.innerHTML = '';
+      OVERLAY_SERIES.forEach(s => {
+        const badge = document.createElement('div');
+        badge.className = 'overlay-series-badge' + (overlayActiveIds.has(s.id) ? ' active' : '');
+        badge.style.color = overlayActiveIds.has(s.id) ? s.color : 'var(--text-muted)';
+        badge.innerHTML = \`<span class="swatch" style="background:\${s.color};"></span>\${s.label}\`;
+        badge.onclick = () => {
+          if (overlayActiveIds.has(s.id)) overlayActiveIds.delete(s.id);
+          else overlayActiveIds.add(s.id);
+          buildOverlaySeriesBadges();
+          if (overlayChart2) {
+            overlayChart2.data.datasets.forEach(ds => {
+              const sid = ds._sid;
+              ds.hidden = !overlayActiveIds.has(sid);
+            });
+            overlayChart2.update();
+          }
+        };
+        row.appendChild(badge);
+      });
+    }
+
+    function initOverlayChart() {
+      buildOverlaySeriesBadges();
+      const canvas = document.getElementById('overlayChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const n = 252;
+      const labels = makeOverlayLabels(n);
+      const datasets = OVERLAY_SERIES.map(s => ({
+        label: s.label,
+        data: genOverlayData(n, parseFloat(s.seed), s.amp),
+        borderColor: s.color,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: false,
+        _sid: s.id,
+      }));
+
+      overlayChart2 = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          animation: false,
+          scales: {
+            x: {
+              grid: { color: 'rgba(33,38,45,0.6)', drawBorder: false },
+              ticks: { color: '#484F58', font: { size: 8, family: 'JetBrains Mono' }, maxTicksLimit: 10, maxRotation: 0 },
+              border: { display: false }
+            },
+            y: {
+              grid: { color: 'rgba(33,38,45,0.6)', drawBorder: false },
+              ticks: { color: '#484F58', font: { size: 8, family: 'JetBrains Mono' }, callback: v => v+'%' },
+              border: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1C2232', borderColor: '#2D3444', borderWidth: 1,
+              titleColor: '#E6EDF3', bodyColor: '#8B949E',
+              titleFont: { family: 'JetBrains Mono', size: 9 },
+              bodyFont: { family: 'JetBrains Mono', size: 9 },
+              callbacks: { label: c => \` \${c.dataset.label}: \${c.raw>0?'+':''}\${c.raw}%\` }
+            }
+          }
+        }
+      });
+      dbCharts.overlay = overlayChart2;
+    }
+
+    function setOverlayPeriod(btn, period) {
+      document.querySelectorAll('.db-panel-acts .db-mini-btn').forEach(b => {
+        if (['3M','1Y','3Y','5Y'].includes(b.textContent)) b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      const nMap = { '3M':63, '1Y':252, '3Y':756, '5Y':1260 };
+      const n = Math.min(nMap[period] || 252, 252);
+      if (overlayChart2) {
+        const lbl = makeOverlayLabels(n);
+        overlayChart2.data.labels = lbl;
+        overlayChart2.data.datasets.forEach((ds, i) => {
+          ds.data = genOverlayData(n, OVERLAY_SERIES[i].seed, OVERLAY_SERIES[i].amp);
+        });
+        overlayChart2.update();
+      }
+    }
+
+    // ── YIELD CURVE CHART ──
+    function initYieldChart() {
+      const canvas = document.getElementById('yieldChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const n = 252;
+      const labels = makeOverlayLabels(n);
+      const TENORS = [
+        { label:'2Y',  color:'#F85149', base: 4.83 },
+        { label:'5Y',  color:'#F59E0B', base: 4.51 },
+        { label:'10Y', color:'#3B82F6', base: 4.22 },
+        { label:'30Y', color:'#A78BFA', base: 4.42 },
+      ];
+      const datasets = TENORS.map(t => {
+        let v = t.base;
+        const data = Array.from({ length: n }, () => {
+          v += (Math.random() - 0.5) * 0.04;
+          return parseFloat(Math.max(0.5, v).toFixed(3));
+        });
+        return { label: t.label, data, borderColor: t.color, borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false };
+      });
+
+      const yc = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: { grid: { color: 'rgba(33,38,45,0.5)', drawBorder: false }, ticks: { color: '#484F58', font: { size: 8, family: 'JetBrains Mono' }, maxTicksLimit: 8, maxRotation: 0 }, border: { display: false } },
+            y: { grid: { color: 'rgba(33,38,45,0.5)', drawBorder: false }, ticks: { color: '#484F58', font: { size: 8, family: 'JetBrains Mono' }, callback: v => v.toFixed(2)+'%' }, border: { display: false } }
+          },
+          plugins: {
+            legend: { display: true, position: 'top', align: 'end', labels: { color: '#8B949E', font: { size: 8, family: 'JetBrains Mono' }, boxWidth: 10, padding: 6 } },
+            tooltip: { backgroundColor: '#1C2232', borderColor: '#2D3444', borderWidth: 1, titleColor: '#E6EDF3', bodyColor: '#8B949E', titleFont: { family: 'JetBrains Mono', size: 9 }, bodyFont: { family: 'JetBrains Mono', size: 9 } }
+          }
+        }
+      });
+      dbCharts.yield = yc;
+    }
+
+    function setYieldPeriod(btn, period) {
+      document.querySelectorAll('.db-panel-acts .db-mini-btn').forEach(b => {
+        if (['1Y','3Y'].includes(b.textContent) && b.closest('.db-panel-hdr')?.querySelector('.db-panel-title')?.textContent.includes('국채')) b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+
+    // ── NEWS FEED ──
+    const NEWS_FEED = [
+      { time:'10:42', badge:'nb-alert', badgeText:'긴급', headline:'Fed RRP 잔고 $180B 하향 — TGA 재구축 2주 내 $180B 예상', sub:'단기자금시장 SOFR 발작 가능성 고조' },
+      { time:'10:15', badge:'nb-macro', badgeText:'매크로', headline:'FOMC 6월 의사록 — 인플레 2차 파고 우려 명시, 9월 인하 확률 21%로 급락', sub:'CME FedWatch 업데이트' },
+      { time:'09:38', badge:'nb-sector', badgeText:'섹터', headline:'AI 인프라·양자컴퓨팅 섹터 옵션 체인 과열 — 60일 IV 사상 최고 경신', sub:'NVDA·RGTI·IonQ Call/Put 비율 2.4배' },
+      { time:'09:12', badge:'nb-crypto', badgeText:'크립토', headline:'BlackRock IBIT 5일 연속 $200M+ 순유입 — BTC ETF 총 AUM $55B 경신', sub:'반감기 후 채굴 원가 상승으로 공급 압박' },
+      { time:'08:55', badge:'nb-macro', badgeText:'매크로', headline:'OPEC+ 자발적 감산 9월까지 연장 합의 — WTI $80~85 박스권 유지', sub:'사우디·러시아 주도 하루 166만배럴 감산' },
+      { time:'어제', badge:'nb-sector', badgeText:'섹터', headline:'DRAM·NAND 가격 반등 MoM +8% — HBM3E 공급 병목 심화', sub:'SK하이닉스·삼성·마이크론으로 공급 집중' },
+      { time:'어제', badge:'nb-macro', badgeText:'매크로', headline:'버크셔해서웨이 13F: AAPL 13% 추가 매도, 현금 $189B 신기록', sub:'CVX 신규 편입. 가치투자 기회 부재 언급' },
+    ];
+
+    function buildNewsFeed() {
+      const el = document.getElementById('news-feed-list');
+      if (!el) return;
+      el.innerHTML = NEWS_FEED.map(n => \`
+        <div class="news-item">
+          <div class="news-item-meta">
+            <span class="news-time">\${n.time}</span>
+            <span class="news-badge \${n.badge}">\${n.badgeText}</span>
+          </div>
+          <div class="news-headline">\${n.headline}</div>
+          <div class="news-sub">\${n.sub}</div>
+        </div>
+      \`).join('');
+    }
+
+    // ── CORRELATION HEATMAP (small) ──
+    function buildDbCorrHeatmap() {
+      const el = document.getElementById('db-corr-heatmap');
+      if (!el) return;
+      const ASSETS6 = ['SPX','TLT','GLD','BTC','DXY','WTI'];
+      const M6 = [
+        [ 1.00, -0.62,  0.14,  0.41, -0.52,  0.28],
+        [-0.62,  1.00, -0.05, -0.18,  0.34, -0.21],
+        [ 0.14, -0.05,  1.00,  0.22, -0.67,  0.41],
+        [ 0.41, -0.18,  0.22,  1.00, -0.21,  0.18],
+        [-0.52,  0.34, -0.67, -0.21,  1.00, -0.38],
+        [ 0.28, -0.21,  0.41,  0.18, -0.38,  1.00],
+      ];
+      const n = ASSETS6.length;
+      const cellPx = Math.floor((el.offsetWidth - 28) / (n + 1)) || 24;
+      const headerPx = 24;
+      const grid = document.createElement('div');
+      grid.style.cssText = \`display:grid;grid-template-columns:\${headerPx}px \${Array(n).fill(cellPx+'px').join(' ')};grid-template-rows:\${headerPx}px \${Array(n).fill(cellPx+'px').join(' ')};gap:1px;\`;
+
+      // corner
+      grid.appendChild(Object.assign(document.createElement('div'), {}));
+      // col headers
+      ASSETS6.forEach(a => {
+        const h = document.createElement('div');
+        h.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:var(--text-muted);font-family:JetBrains Mono,monospace;';
+        h.textContent = a;
+        grid.appendChild(h);
+      });
+      // rows
+      for (let i = 0; i < n; i++) {
+        const rl = document.createElement('div');
+        rl.style.cssText = 'display:flex;align-items:center;font-size:8px;font-weight:600;color:var(--text-muted);font-family:JetBrains Mono,monospace;';
+        rl.textContent = ASSETS6[i];
+        grid.appendChild(rl);
+        for (let j = 0; j < n; j++) {
+          const val = M6[i][j];
+          const { bg } = corrToColor(val);
+          const cell = document.createElement('div');
+          cell.style.cssText = \`background:\${bg};border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:JetBrains Mono,monospace;color:rgba(230,237,243,0.8);cursor:pointer;\`;
+          cell.title = \`\${ASSETS6[i]}×\${ASSETS6[j]}: \${val.toFixed(2)}\`;
+          cell.textContent = i === j ? '—' : val.toFixed(2);
+          grid.appendChild(cell);
+        }
+      }
+      el.appendChild(grid);
+    }
+
+    // ── MACRO SCOREBOARD ──
+    const MACRO_TABS = {
+      fx: [
+        { sym:'USD/KRW', val:'1,381', chg:'+0.12%', pos:true  },
+        { sym:'USD/JPY', val:'154.2', chg:'+0.08%', pos:true  },
+        { sym:'EUR/USD', val:'1.074', chg:'-0.11%', pos:false },
+        { sym:'GBP/USD', val:'1.264', chg:'-0.04%', pos:false },
+        { sym:'AUD/USD', val:'0.653', chg:'+0.18%', pos:true  },
+        { sym:'USD/CNY', val:'7.246', chg:'+0.06%', pos:true  },
+        { sym:'DXY',     val:'104.4', chg:'-0.18%', pos:false },
+      ],
+      idx: [
+        { sym:'S&P 500', val:'5,421', chg:'+0.43%', pos:true  },
+        { sym:'NASDAQ',  val:'19,284',chg:'+0.71%', pos:true  },
+        { sym:'Dow',     val:'38,742',chg:'+0.22%', pos:true  },
+        { sym:'KOSPI',   val:'2,782', chg:'-0.31%', pos:false },
+        { sym:'Nikkei',  val:'38,712',chg:'+0.54%', pos:true  },
+        { sym:'DAX',     val:'18,142',chg:'+0.33%', pos:true  },
+        { sym:'FTSE',    val:'8,214', chg:'-0.08%', pos:false },
+      ],
+      cmdty: [
+        { sym:'WTI',  val:'82.16', chg:'+0.57%', pos:true  },
+        { sym:'BRENT',val:'86.42', chg:'+0.48%', pos:true  },
+        { sym:'GOLD', val:'2,384', chg:'+0.29%', pos:true  },
+        { sym:'SILV', val:'28.14', chg:'+0.44%', pos:true  },
+        { sym:'NATG', val:'2.84',  chg:'-1.21%', pos:false },
+        { sym:'COPR', val:'4.61',  chg:'+0.32%', pos:true  },
+        { sym:'CORN', val:'448',   chg:'-0.54%', pos:false },
+      ],
+    };
+
+    function setMacroTab(btn, tab) {
+      document.querySelectorAll('.db-panel-acts .db-mini-btn').forEach(b => {
+        if (['환율','지수','원자재'].includes(b.textContent)) b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      buildMacroBoard(tab);
+    }
+
+    function buildMacroBoard(tab) {
+      const el = document.getElementById('macro-board-list');
+      if (!el) return;
+      const rows = MACRO_TABS[tab] || MACRO_TABS.fx;
+      const maxChg = Math.max(...rows.map(r => Math.abs(parseFloat(r.chg))));
+      el.innerHTML = rows.map(r => {
+        const chgAbs = Math.abs(parseFloat(r.chg));
+        const w = Math.round((chgAbs / maxChg) * 100);
+        const color = r.pos ? '#3FB950' : '#F85149';
+        const cl = r.pos ? 'positive' : 'negative';
+        return \`<div class="macro-board-row">
+          <span class="mb-sym">\${r.sym}</span>
+          <div class="mb-bar-track"><div class="mb-bar-fill" style="width:\${w}%;background:\${color};"></div></div>
+          <span class="mb-val \${cl}">\${r.val}</span>
+          <span class="mb-chg \${cl}">\${r.chg}</span>
+        </div>\`;
+      }).join('');
+    }
+
+    // ── PORTFOLIO MINI DONUT ──
+    let pfMiniChart = null;
+    function buildPfMiniDonut() {
+      const canvas = document.getElementById('pfMiniDonut');
+      if (!canvas) return;
+      pfMiniChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [26, 18.6, 12.4, 8.1, 34.9],
+            backgroundColor: ['#3B82F6','#22D3EE','#F59E0B','#A78BFA','#6B7280'],
+            borderColor: '#12161F', borderWidth: 1.5,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: true, cutout: '70%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          animation: false,
+        }
+      });
+    }
+
+    function buildPfMiniTable() {
+      const el = document.getElementById('pf-mini-table');
+      if (!el) return;
+      const rows = [
+        { t:'AAPL', w:'14.2%', ret:'+18.4%', d:'+0.92%', pos:true },
+        { t:'NVDA', w:'11.8%', ret:'+42.1%', d:'+2.14%', pos:true },
+        { t:'TLT',  w:'18.6%', ret:'-8.2%',  d:'+0.31%', pos:false },
+        { t:'GLD',  w:'12.4%', ret:'+9.7%',  d:'+0.28%', pos:true },
+        { t:'BTC',  w:'8.1%',  ret:'+56.3%', d:'+1.24%', pos:true },
+        { t:'CASH', w:'34.9%', ret:'+5.1%',  d:'+0.01%', pos:true },
+      ];
+      el.innerHTML = rows.map(r => \`
+        <div class="pf-mini-row">
+          <span class="pf-mini-ticker">\${r.t}</span>
+          <span class="pf-mini-wgt">\${r.w}</span>
+          <span class="pf-mini-ret \${r.pos?'positive':'negative'}">\${r.ret}</span>
+          <span class="pf-mini-1d \${r.pos?'positive':'negative'}">\${r.d}</span>
+        </div>
+      \`).join('');
+    }
+
+    // ── CALENDAR ──
+    function buildCalendar() {
+      const el = document.getElementById('db-calendar');
+      const lbl = document.getElementById('cal-month-label');
+      if (!el) return;
+      const now = new Date();
+      const year = now.getFullYear(), month = now.getMonth();
+      if (lbl) lbl.textContent = \`\${year}년 \${month+1}월\`;
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = now.getDate();
+
+      // High-impact event days
+      const highDays = new Set([5, 12, 17, 25]);
+      const eventDays = new Set([3, 8, 14, 19, 22, 28]);
+
+      const DOW = ['일','월','화','수','목','금','토'];
+      let html = '<div class="db-calendar-grid">';
+      DOW.forEach(d => { html += \`<div class="cal-dow">\${d}</div>\`; });
+      for (let i = 0; i < firstDay; i++) html += '<div></div>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = d === today;
+        const isHigh  = highDays.has(d);
+        const hasEvt  = eventDays.has(d);
+        const cls = [
+          'cal-day',
+          isToday ? 'today' : '',
+          isHigh  ? 'has-high' : hasEvt ? 'has-event' : '',
+        ].filter(Boolean).join(' ');
+        html += \`<div class="\${cls}" title="\${isHigh?'고임팩트 이벤트':hasEvt?'경제지표':''}">\${d}</div>\`;
+      }
+      html += '</div>';
+      el.innerHTML = html;
+    }
+
+    // ── EVENT LIST ──
+    const EVENTS_DATA = [
+      { date:'6/18', title:'FOMC 금리 결정', sub:'25bp 동결 컨센서스 98%', impact:'impact-hi' },
+      { date:'6/19', title:'미국 CPI (5월)', sub:'전월比 +0.3% 예상', impact:'impact-hi' },
+      { date:'6/20', title:'ECB 통화정책회의', sub:'25bp 추가 인하 예상', impact:'impact-mid' },
+      { date:'6/21', title:'미국 소매판매 (5월)', sub:'+0.4% 예상', impact:'impact-mid' },
+      { date:'6/25', title:'GDP (1분기 최종)', sub:'+1.3% 확정 예상', impact:'impact-mid' },
+      { date:'6/26', title:'Jerome Powell 연설', sub:'반기 의회 증언', impact:'impact-hi' },
+      { date:'6/28', title:'PCE 물가지수 (5월)', sub:'핵심 PCE +2.6% 예상', impact:'impact-hi' },
+    ];
+
+    function buildEventList() {
+      const el = document.getElementById('event-list');
+      if (!el) return;
+      el.innerHTML = EVENTS_DATA.map(e => \`
+        <div class="event-item">
+          <span class="event-date-badge">\${e.date}</span>
+          <div>
+            <div class="event-title">\${e.title}</div>
+            <div class="event-sub">\${e.sub}</div>
+          </div>
+          <span class="event-impact \${e.impact}">\${e.impact.includes('hi')?'HIGH':e.impact.includes('mid')?'MID':'LOW'}</span>
+        </div>
+      \`).join('');
     }
 
     // ============================================================
@@ -3581,11 +4882,16 @@ app.get('*', (c) => {
     // ============================================================
     window.addEventListener('DOMContentLoaded', () => {
       loadSidebarState();
+      buildDashboard();    // Main dashboard panels
       initDonutChart();
       initHeatmap();
       initTimelineChart();
       renderIssueCards();  // Initialize issue page
     });
+
+    // Re-build dashboard charts on navigate to dashboard
+    const _origNavigate = navigate;
+    window._dbBuilt = false;
 
     // Resize handling
     window.addEventListener('resize', () => {
