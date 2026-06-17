@@ -445,22 +445,36 @@ app.get('*', (c) => {
     }
 
     /* ===== WORKSPACE CONTENT ===== */
+    /* 터미널 모드: 전체 높이 고정, 스크롤 없음 */
     #workspace {
       flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      background: var(--bg-primary);
-    }
-
-    /* Dashboard page overrides workspace padding */
-    #workspace:has(#page-dashboard.active) {
-      padding: 0;
+      min-height: 0;
       overflow: hidden;
+      background: var(--bg-primary);
+      display: flex;
+      flex-direction: column;
     }
 
     /* ===== PAGE VIEWS ===== */
-    .page-view { display: none; }
-    .page-view.active { display: block; }
+    /* 모든 page-view는 workspace 전체를 차지하며 내부만 스크롤 */
+    .page-view {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .page-view.active {
+      display: flex;
+      flex-direction: column;
+    }
+    /* 일반 페이지 (portfolio 등): 내부 콘텐츠 영역만 스크롤 */
+    .page-view.active .page-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+    }
 
     /* ===== CARD COMPONENT ===== */
     .card {
@@ -512,13 +526,44 @@ app.get('*', (c) => {
     .card-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
     .card-btn.active { background: rgba(59,130,246,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
 
-    .card-body { padding: 18px; }
+    /* 커닥트 모드: 카드 헤더/바디 패딩 최소화 */
+    .card-header {
+      padding: 7px 12px !important;
+    }
+    .card-body { padding: 10px 12px; }
 
     /* ===== PORTFOLIO & RISK PAGE ===== */
+    /* 터미널 모드: page 전체 구조 */
+    #page-portfolio {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      padding: 0;
+    }
+    #page-portfolio.active { display: flex; }
+
     .portfolio-grid {
+      flex: 1;
+      min-height: 0;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      grid-template-rows: 1fr;
+      gap: 8px;
+      padding: 8px;
+      overflow: hidden;
+    }
+    /* 카드 자체가 그리드 셀을 채우도록 */
+    .portfolio-grid > .card {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .portfolio-grid > .card .card-body {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
     }
 
     /* Widget 1: Portfolio Summary */
@@ -530,6 +575,9 @@ app.get('*', (c) => {
       display: flex;
       flex-direction: column;
       gap: 0;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     /* Donut + KPI row */
@@ -541,18 +589,18 @@ app.get('*', (c) => {
     }
 
     .donut-panel {
-      padding: 20px;
+      padding: 10px 12px;
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     .donut-container {
       position: relative;
-      width: 140px;
-      height: 140px;
+      width: 110px;
+      height: 110px;
     }
 
     .donut-center-label {
@@ -564,7 +612,7 @@ app.get('*', (c) => {
     }
 
     .donut-center-value {
-      font-size: 18px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--text-accent);
       font-family: 'JetBrains Mono', monospace;
@@ -572,7 +620,7 @@ app.get('*', (c) => {
     }
 
     .donut-center-sub {
-      font-size: 9px;
+      font-size: 8px;
       color: var(--text-muted);
       margin-top: 2px;
     }
@@ -654,20 +702,20 @@ app.get('*', (c) => {
 
     /* Risk Bars */
     .risk-panel {
-      padding: 16px 20px;
+      padding: 8px 12px;
     }
 
     .risk-title {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 600;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 12px;
+      margin-bottom: 6px;
     }
 
     .risk-bar-item {
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     .risk-bar-header {
@@ -707,7 +755,7 @@ app.get('*', (c) => {
 
     /* Holdings table */
     .holdings-panel {
-      padding: 16px 20px;
+      padding: 6px 10px;
       border-top: 1px solid var(--border-color);
     }
 
@@ -730,8 +778,8 @@ app.get('*', (c) => {
     .holdings-table th:not(:first-child) { text-align: right; }
 
     .holdings-table td {
-      padding: 6px 4px;
-      font-size: 11px;
+      padding: 4px 4px;
+      font-size: 10px;
       border-bottom: 1px solid rgba(33, 38, 45, 0.5);
     }
 
@@ -755,25 +803,29 @@ app.get('*', (c) => {
     }
 
     /* Widget 2: Correlation Analysis */
-    .correlation-widget .card-body { padding: 0; }
+    .correlation-widget .card-body { padding: 0; overflow: hidden; }
 
     .corr-inner-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0;
+      height: 100%;
+      overflow: hidden;
     }
 
     .heatmap-panel {
-      padding: 20px;
+      padding: 10px 12px;
       border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .heatmap-panel-title {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .heatmap-grid {
@@ -816,17 +868,20 @@ app.get('*', (c) => {
     }
 
     .timeline-panel {
-      padding: 20px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
+      overflow: hidden;
+      min-height: 0;
     }
 
     .timeline-panel-title {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
+      flex-shrink: 0;
     }
 
     .period-selector {
@@ -849,7 +904,7 @@ app.get('*', (c) => {
     .period-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
     .period-btn.active { background: rgba(59,130,246,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
 
-    .timeline-chart-container { flex: 1; min-height: 200px; }
+    .timeline-chart-container { flex: 1; min-height: 0; overflow: hidden; }
 
     /* Heatmap full-width row */
     .heatmap-correlation-row {
@@ -2058,25 +2113,34 @@ app.get('*', (c) => {
     .impact-lo  { background: rgba(72,79,88,0.15);    color: #8B949E; }
 
     /* ===== ISSUE PAGE: TOP HEADER ===== */
+    /* page-issue 터미널 모드 */
+    #page-issue {
+      padding: 0;
+      overflow: hidden;
+    }
+
     .issue-top-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px 12px;
+      flex-shrink: 0;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: nowrap;
     }
 
     .issue-search-bar {
       flex: 1;
-      min-width: 260px;
+      min-width: 200px;
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--bg-secondary);
+      background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 0 12px;
-      height: 36px;
+      border-radius: 5px;
+      padding: 0 10px;
+      height: 28px;
       transition: border-color 0.2s;
     }
 
@@ -2164,10 +2228,12 @@ app.get('*', (c) => {
     /* ===== ISSUE 3-COLUMN LAYOUT ===== */
     .issue-layout {
       display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 16px;
-      height: calc(100vh - var(--header-height) - 100px);
+      grid-template-columns: 200px 1fr;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
       overflow: hidden;
+      padding: 8px;
     }
 
     /* ===== FACET PANEL (LEFT) ===== */
@@ -2838,15 +2904,15 @@ app.get('*', (c) => {
     /* ===== SCROLLABLE CONTENT AREA ===== */
     .scroll-area { overflow-y: auto; }
 
-    /* ===== RESPONSIVE ADJUSTMENTS ===== */
-    @media (max-width: 1280px) {
+    /* ===== RESPONSIVE ADJUSTMENTS (DISABLED — terminal-mode FHD+ fixed layout) ===== */
+    /* @media (max-width: 1280px) {
       .portfolio-grid { grid-template-columns: 1fr; }
-    }
+    } */
 
-    @media (max-width: 900px) {
+    /* @media (max-width: 900px) {
       .donut-kpi-row { grid-template-columns: 1fr; }
       .corr-inner-layout { grid-template-columns: 1fr; }
-    }
+    } */
 
     /* ===== ANIMATED ENTRY ===== */
     .fade-in {
@@ -2866,13 +2932,21 @@ app.get('*', (c) => {
     .market-pulse-strip {
       display: flex;
       align-items: center;
-      gap: 16px;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 8px 14px;
-      margin-bottom: 20px;
-      overflow-x: auto;
+      gap: 0;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 12px;
+      height: 28px;
+      flex-shrink: 0;
+      overflow-x: hidden;
+    }
+    .market-pulse-strip .pulse-item {
+      padding: 0 10px;
+      border-right: 1px solid var(--border-color);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .pulse-item {
