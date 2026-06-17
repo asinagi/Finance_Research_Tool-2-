@@ -19,6 +19,7 @@ app.get('*', (c) => {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     /* ===== CSS RESET & ROOT VARIABLES ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -853,6 +854,232 @@ app.get('*', (c) => {
     .heatmap-correlation-row {
       border-top: 1px solid var(--border-color);
     }
+
+    /* ══════════════════════════════════════════════
+       MC — 매크로 차트 페이지
+    ══════════════════════════════════════════════ */
+    #page-chart {
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    /* 루트: 컨트롤바 + 바디 */
+    .mc-root { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+
+    /* ── A. 상단 컨트롤 헤더 ── */
+    .mc-top-bar {
+      display: flex; align-items: center; gap: 0;
+      height: 42px; flex-shrink: 0;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 10px; gap: 8px;
+    }
+    .mc-top-left  { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .mc-top-center{ display: flex; align-items: center; gap: 5px; flex: 1; justify-content: center; overflow: hidden; }
+    .mc-top-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .mc-divider-v { width: 1px; height: 20px; background: var(--border-color); margin: 0 2px; }
+
+    /* 타임프레임 버튼 */
+    .mc-tf-group { display: flex; gap: 2px; }
+    .mc-tf-btn {
+      background: none; border: 1px solid transparent; border-radius: 3px;
+      color: var(--text-muted); font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 8px; cursor: pointer; transition: all 0.13s;
+      letter-spacing: 0.04em;
+    }
+    .mc-tf-btn:hover { border-color: var(--border-color); color: var(--text-primary); }
+    .mc-tf-btn.active { background: rgba(88,166,255,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* 차트 스타일 버튼 */
+    .mc-style-group { display: flex; gap: 2px; }
+    .mc-style-btn {
+      background: none; border: 1px solid transparent; border-radius: 3px;
+      color: var(--text-muted); font-size: 11px;
+      width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.13s;
+    }
+    .mc-style-btn:hover { border-color: var(--border-color); color: var(--text-primary); }
+    .mc-style-btn.active { background: rgba(88,166,255,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* 아이콘 버튼 */
+    .mc-icon-btn {
+      background: none; border: 1px solid transparent; border-radius: 3px;
+      color: var(--text-muted); font-size: 11px;
+      width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.13s;
+    }
+    .mc-icon-btn:hover { border-color: var(--border-color); color: var(--text-primary); }
+    .mc-icon-btn.active { background: rgba(88,166,255,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+
+    /* 프리셋 버튼 */
+    .mc-preset-label {
+      font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+      color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+    .mc-preset-btn {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: 4px; color: var(--text-muted); font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 10px; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap; letter-spacing: 0.02em;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .mc-preset-btn i { font-size: 9px; }
+    .mc-preset-btn:hover { border-color: rgba(88,166,255,0.4); color: var(--text-primary); background: rgba(88,166,255,0.06); }
+    .mc-preset-btn.active { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(88,166,255,0.12); }
+
+    /* 라이브 인디케이터 */
+    .mc-live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3FB950; animation: pulse-green 2s infinite;
+    }
+    @keyframes pulse-green {
+      0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(63,185,80,0.5); }
+      50%      { opacity:0.7; box-shadow: 0 0 0 4px rgba(63,185,80,0); }
+    }
+    .mc-live-label { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: #3FB950; letter-spacing: 0.08em; }
+
+    /* ── B. 바디 (사이드바 + 캔버스) ── */
+    .mc-body { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+
+    /* 사이드바 */
+    .mc-sidebar {
+      width: 200px; min-width: 200px; flex-shrink: 0;
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: width 0.22s ease, min-width 0.22s ease;
+    }
+    .mc-sidebar.collapsed { width: 0; min-width: 0; border-right: none; }
+    .mc-sb-inner {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      display: flex; flex-direction: column;
+    }
+    .mc-sb-inner::-webkit-scrollbar { width: 3px; }
+    .mc-sb-inner::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+    .mc-sb-search-wrap {
+      position: relative; padding: 8px 10px 6px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .mc-sb-search-icon {
+      position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+      font-size: 9px; color: var(--text-muted); pointer-events: none;
+    }
+    .mc-sb-search {
+      width: 100%; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 4px;
+      color: var(--text-primary); font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 8px 4px 22px; outline: none; box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .mc-sb-search:focus { border-color: var(--accent-blue); }
+    .mc-sb-search::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+    /* 사이드바 아코디언 그룹 */
+    .mc-sb-group { border-bottom: 1px solid var(--border-color); }
+    .mc-sb-group-hdr {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 10px; cursor: pointer;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      color: var(--text-muted); text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+      transition: background 0.12s; user-select: none;
+    }
+    .mc-sb-group-hdr:hover { background: rgba(88,166,255,0.04); }
+    .mc-sb-chevron { font-size: 8px; transition: transform 0.2s; }
+    .mc-sb-group.collapsed .mc-sb-chevron { transform: rotate(-90deg); }
+    .mc-sb-items { overflow: hidden; }
+    .mc-sb-group.collapsed .mc-sb-items { display: none; }
+    .mc-sb-item {
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 10px; cursor: pointer; transition: background 0.12s;
+    }
+    .mc-sb-item:hover { background: rgba(88,166,255,0.05); }
+    .mc-cb { accent-color: var(--accent-blue); width: 11px; height: 11px; cursor: pointer; flex-shrink: 0; }
+    .mc-cb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .mc-sb-name { flex: 1; font-size: 10px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mc-sb-val { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+    /* ── C. 캔버스 영역 ── */
+    .mc-canvas-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      min-width: 0; overflow: hidden; position: relative;
+      background: var(--bg-primary);
+    }
+
+    /* 플로팅 범례 */
+    .mc-legend {
+      position: absolute; top: 10px; left: 12px;
+      z-index: 10; display: flex; flex-direction: column; gap: 3px;
+      pointer-events: none;
+    }
+    .mc-legend-item {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(13,17,23,0.82);
+      border: 1px solid var(--border-color);
+      border-radius: 4px; padding: 3px 8px;
+      pointer-events: all;
+    }
+    .mc-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .mc-legend-name { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); }
+    .mc-legend-val  { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); font-weight: 600; }
+    .mc-legend-chg  { font-size: 9px;  font-family: 'JetBrains Mono', monospace; }
+    .mc-legend-chg.pos { color: #3FB950; }
+    .mc-legend-chg.neg { color: #F85149; }
+    .mc-legend-actions { display: flex; gap: 3px; opacity: 0; transition: opacity 0.15s; }
+    .mc-legend-item:hover .mc-legend-actions { opacity: 1; }
+    .mc-legend-act-btn {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 9px; cursor: pointer; padding: 0 2px;
+      transition: color 0.12s;
+    }
+    .mc-legend-act-btn:hover { color: var(--text-primary); }
+
+    /* 메인 차트 */
+    .mc-chart-main {
+      flex: 1; min-height: 0;
+      position: relative; overflow: hidden;
+    }
+    /* Crosshair 말풍선 (커스텀) */
+    .mc-crosshair-x, .mc-crosshair-y {
+      position: absolute; pointer-events: none; z-index: 20;
+      background: rgba(13,17,23,0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 3px; padding: 2px 6px;
+      font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary); white-space: nowrap;
+    }
+
+    /* 서브 패널 그룹 */
+    .mc-sub-panels {
+      display: flex; gap: 0;
+      border-top: 1px solid var(--border-color);
+      height: 130px; flex-shrink: 0;
+      transition: height 0.22s ease, opacity 0.22s ease;
+    }
+    .mc-sub-panels.hidden { height: 0; opacity: 0; overflow: hidden; }
+    .mc-sub-panel {
+      flex: 1; display: flex; flex-direction: column;
+      border-right: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+    .mc-sub-panel:last-child { border-right: none; }
+    .mc-sub-panel-label {
+      font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+      color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+      padding: 4px 8px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .mc-sub-chart { flex: 1; min-height: 0; overflow: hidden; }
+
+    /* RSI 레벨 라인 색 */
+    .mc-rsi-ob { color: #F85149; }
+    .mc-rsi-os { color: #3FB950; }
 
     /* ===== MAIN DASHBOARD LAYOUT ===== */
     #page-dashboard {
@@ -2621,6 +2848,12 @@ app.get('*', (c) => {
             <span class="nav-item-icon"><i class="fas fa-filter"></i></span>
             <span class="nav-item-label">자산 스크리너</span>
           </div>
+
+          <div class="nav-item" data-page="chart" data-label="매크로 차트">
+            <span class="nav-item-index">07</span>
+            <span class="nav-item-icon"><i class="fas fa-chart-area"></i></span>
+            <span class="nav-item-label">매크로 차트</span>
+          </div>
         </div>
 
         <div class="section-divider"></div>
@@ -3297,6 +3530,176 @@ app.get('*', (c) => {
           </div>
         </div>
 
+        <!-- ════════════════════════════════════════════
+             PAGE: 매크로 차트 (Macro Chart)
+        ════════════════════════════════════════════ -->
+        <div class="page-view fade-in" id="page-chart">
+          <div class="mc-root" id="mc-root">
+
+            <!-- ── A. 상단 컨트롤 헤더 ── -->
+            <div class="mc-top-bar" id="mc-top-bar">
+
+              <!-- A-1. 좌측: 사이드바 토글 + 타임프레임 -->
+              <div class="mc-top-left">
+                <button class="mc-icon-btn" id="mc-sb-toggle" onclick="mcToggleSidebar()" title="지표 사이드바">
+                  <i class="fas fa-bars"></i>
+                </button>
+                <div class="mc-tf-group">
+                  <button class="mc-tf-btn" onclick="mcSetTf(this,'15m')">15m</button>
+                  <button class="mc-tf-btn" onclick="mcSetTf(this,'1h')">1h</button>
+                  <button class="mc-tf-btn active" onclick="mcSetTf(this,'1D')">1D</button>
+                  <button class="mc-tf-btn" onclick="mcSetTf(this,'1W')">1W</button>
+                  <button class="mc-tf-btn" onclick="mcSetTf(this,'1M')">1M</button>
+                </div>
+                <div class="mc-divider-v"></div>
+                <div class="mc-style-group">
+                  <button class="mc-style-btn active" onclick="mcSetStyle(this,'line')" title="라인 차트"><i class="fas fa-chart-line"></i></button>
+                  <button class="mc-style-btn" onclick="mcSetStyle(this,'candle')" title="캔들 차트"><i class="fas fa-chart-bar"></i></button>
+                  <button class="mc-style-btn" onclick="mcSetStyle(this,'area')" title="영역 차트"><i class="fas fa-wave-square"></i></button>
+                </div>
+              </div>
+
+              <!-- A-2. 중앙: 나의 경제지표 프리셋 -->
+              <div class="mc-top-center">
+                <span class="mc-preset-label">PRESET</span>
+                <button class="mc-preset-btn active" onclick="mcApplyPreset(this,'fed_liq')" data-preset="fed_liq">
+                  <i class="fas fa-water"></i> 연준 순유동성
+                </button>
+                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'risk_on')" data-preset="risk_on">
+                  <i class="fas fa-rocket"></i> 고베타 위험자산
+                </button>
+                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'rates')" data-preset="rates">
+                  <i class="fas fa-percentage"></i> 금리 커브
+                </button>
+                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'macro_trio')" data-preset="macro_trio">
+                  <i class="fas fa-globe"></i> 매크로 3대 지표
+                </button>
+                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'custom1')" data-preset="custom1">
+                  <i class="fas fa-star"></i> 나의 즐겨찾기
+                </button>
+              </div>
+
+              <!-- A-3. 우측: 전역 도구 -->
+              <div class="mc-top-right">
+                <button class="mc-icon-btn" onclick="mcToggleCrosshair(this)" title="크로스헤어" id="mc-xhair-btn">
+                  <i class="fas fa-crosshairs"></i>
+                </button>
+                <button class="mc-icon-btn" onclick="mcToggleSubPanel(this)" title="보조 패널 (RSI/Vol)" id="mc-sub-btn">
+                  <i class="fas fa-layer-group"></i>
+                </button>
+                <button class="mc-icon-btn" onclick="mcResetZoom()" title="줌 초기화">
+                  <i class="fas fa-compress-alt"></i>
+                </button>
+                <div class="mc-divider-v"></div>
+                <div class="mc-live-dot"></div>
+                <span class="mc-live-label">LIVE</span>
+              </div>
+            </div>
+            <!-- /mc-top-bar -->
+
+            <!-- ── B. 좌측 지표 사이드바 ── -->
+            <div class="mc-body">
+              <aside class="mc-sidebar" id="mc-sidebar">
+                <div class="mc-sb-inner">
+
+                  <!-- 검색 -->
+                  <div class="mc-sb-search-wrap">
+                    <i class="fas fa-search mc-sb-search-icon"></i>
+                    <input class="mc-sb-search" id="mc-sb-search" placeholder="지표 검색…" oninput="mcSbFilter()">
+                  </div>
+
+                  <!-- 주가지수 -->
+                  <div class="mc-sb-group" id="mcg-index">
+                    <div class="mc-sb-group-hdr" onclick="mcToggleGroup('mcg-index')">
+                      <i class="fas fa-chevron-down mc-sb-chevron"></i>
+                      <span>주가지수</span>
+                    </div>
+                    <div class="mc-sb-items">
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="SPX" onchange="mcToggleIndicator('SPX')"><span class="mc-cb-dot" style="background:#58A6FF"></span><span class="mc-sb-name">S&amp;P 500</span><span class="mc-sb-val">5,421</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="NDX" onchange="mcToggleIndicator('NDX')"><span class="mc-cb-dot" style="background:#F78166"></span><span class="mc-sb-name">NASDAQ 100</span><span class="mc-sb-val">19,284</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="RUT" onchange="mcToggleIndicator('RUT')"><span class="mc-cb-dot" style="background:#D29922"></span><span class="mc-sb-name">Russell 2000</span><span class="mc-sb-val">2,014</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="VIX" onchange="mcToggleIndicator('VIX')"><span class="mc-cb-dot" style="background:#F85149"></span><span class="mc-sb-name">VIX</span><span class="mc-sb-val">13.84</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="KOSPI" onchange="mcToggleIndicator('KOSPI')"><span class="mc-cb-dot" style="background:#3FB950"></span><span class="mc-sb-name">KOSPI</span><span class="mc-sb-val">2,782</span></label>
+                    </div>
+                  </div>
+
+                  <!-- 금리/유동성 -->
+                  <div class="mc-sb-group" id="mcg-rates">
+                    <div class="mc-sb-group-hdr" onclick="mcToggleGroup('mcg-rates')">
+                      <i class="fas fa-chevron-down mc-sb-chevron"></i>
+                      <span>금리 / 유동성</span>
+                    </div>
+                    <div class="mc-sb-items">
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="US10Y" onchange="mcToggleIndicator('US10Y')"><span class="mc-cb-dot" style="background:#FF7B72"></span><span class="mc-sb-name">US 10Y 국채</span><span class="mc-sb-val">4.218%</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="US2Y" onchange="mcToggleIndicator('US2Y')"><span class="mc-cb-dot" style="background:#FFA657"></span><span class="mc-sb-name">US 2Y 국채</span><span class="mc-sb-val">4.832%</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="SOFR" onchange="mcToggleIndicator('SOFR')"><span class="mc-cb-dot" style="background:#E3B341"></span><span class="mc-sb-name">SOFR</span><span class="mc-sb-val">5.30%</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="RRP" onchange="mcToggleIndicator('RRP')"><span class="mc-cb-dot" style="background:#A5D6FF"></span><span class="mc-sb-name">연준 RRP 잔고</span><span class="mc-sb-val">$412B</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="TGA" onchange="mcToggleIndicator('TGA')"><span class="mc-cb-dot" style="background:#7EE787"></span><span class="mc-sb-name">재무부 TGA</span><span class="mc-sb-val">$738B</span></label>
+                    </div>
+                  </div>
+
+                  <!-- 원자재/FX -->
+                  <div class="mc-sb-group" id="mcg-cmdty">
+                    <div class="mc-sb-group-hdr" onclick="mcToggleGroup('mcg-cmdty')">
+                      <i class="fas fa-chevron-down mc-sb-chevron"></i>
+                      <span>원자재 / FX</span>
+                    </div>
+                    <div class="mc-sb-items">
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="GOLD" onchange="mcToggleIndicator('GOLD')"><span class="mc-cb-dot" style="background:#F0C050"></span><span class="mc-sb-name">Gold (XAU/USD)</span><span class="mc-sb-val">2,384</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="WTI" onchange="mcToggleIndicator('WTI')"><span class="mc-cb-dot" style="background:#79C0FF"></span><span class="mc-sb-name">WTI 원유</span><span class="mc-sb-val">82.16</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="DXY" onchange="mcToggleIndicator('DXY')"><span class="mc-cb-dot" style="background:#CE93D8"></span><span class="mc-sb-name">달러 인덱스 DXY</span><span class="mc-sb-val">104.4</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="USDKRW" onchange="mcToggleIndicator('USDKRW')"><span class="mc-cb-dot" style="background:#80DEEA"></span><span class="mc-sb-name">USD/KRW</span><span class="mc-sb-val">1,381</span></label>
+                    </div>
+                  </div>
+
+                  <!-- 암호화폐 -->
+                  <div class="mc-sb-group" id="mcg-crypto">
+                    <div class="mc-sb-group-hdr" onclick="mcToggleGroup('mcg-crypto')">
+                      <i class="fas fa-chevron-down mc-sb-chevron"></i>
+                      <span>암호화폐</span>
+                    </div>
+                    <div class="mc-sb-items">
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="BTC" onchange="mcToggleIndicator('BTC')"><span class="mc-cb-dot" style="background:#F78166"></span><span class="mc-sb-name">Bitcoin (BTC)</span><span class="mc-sb-val">68,412</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="ETH" onchange="mcToggleIndicator('ETH')"><span class="mc-cb-dot" style="background:#A5D6FF"></span><span class="mc-sb-name">Ethereum (ETH)</span><span class="mc-sb-val">3,641</span></label>
+                      <label class="mc-sb-item"><input type="checkbox" class="mc-cb" data-id="RGTI" onchange="mcToggleIndicator('RGTI')"><span class="mc-cb-dot" style="background:#FFA657"></span><span class="mc-sb-name">RGTI (양자)</span><span class="mc-sb-val">12.84</span></label>
+                    </div>
+                  </div>
+
+                </div>
+              </aside>
+              <!-- /mc-sidebar -->
+
+              <!-- ── C. 메인 캔버스 영역 ── -->
+              <div class="mc-canvas-wrap" id="mc-canvas-wrap">
+
+                <!-- C-1. 플로팅 범례 -->
+                <div class="mc-legend" id="mc-legend"></div>
+
+                <!-- C-2. 메인 차트 -->
+                <div class="mc-chart-main" id="mc-chart-main"></div>
+
+                <!-- C-3. 서브 패널 (RSI + Volume) -->
+                <div class="mc-sub-panels" id="mc-sub-panels">
+                  <div class="mc-sub-panel" id="mc-rsi-panel">
+                    <div class="mc-sub-panel-label">RSI (14)</div>
+                    <div class="mc-sub-chart" id="mc-rsi-chart"></div>
+                  </div>
+                  <div class="mc-sub-panel" id="mc-vol-panel">
+                    <div class="mc-sub-panel-label">VOLUME</div>
+                    <div class="mc-sub-chart" id="mc-vol-chart"></div>
+                  </div>
+                </div>
+
+              </div>
+              <!-- /mc-canvas-wrap -->
+            </div>
+            <!-- /mc-body -->
+
+          </div>
+          <!-- /mc-root -->
+        </div>
+        <!-- /page-chart -->
+
         <div class="page-view fade-in" id="page-docs">
           <div class="placeholder-page">
             <div class="placeholder-icon"><i class="fas fa-file-alt"></i></div>
@@ -3360,6 +3763,7 @@ app.get('*', (c) => {
         'regime':       { label: '국면 모니터',            section: '모듈' },
         'portfolio':    { label: '포트폴리오·리스크',      section: '모듈' },
         'screener':     { label: '자산 스크리너',          section: '모듈' },
+        'chart':        { label: '매크로 차트',            section: '모듈' },
         'docs':         { label: '문서 목록',              section: '운영자' },
         'sources':      { label: '수집원 관리',            section: '운영자' },
         'calibration':  { label: '데이터 보정',            section: '운영자' },
@@ -4226,6 +4630,417 @@ app.get('*', (c) => {
       { time:'어제', badge:'nb-sector', badgeText:'섹터', headline:'DRAM·NAND 가격 반등 MoM +8% — HBM3E 공급 병목 심화', sub:'SK하이닉스·삼성·마이크론으로 공급 집중' },
       { time:'어제', badge:'nb-macro', badgeText:'매크로', headline:'버크셔해서웨이 13F: AAPL 13% 추가 매도, 현금 $189B 신기록', sub:'CVX 신규 편입. 가치투자 기회 부재 언급' },
     ];
+
+    // ══════════════════════════════════════════════
+    // MC — 매크로 차트 (Macro Chart) JS
+    // ══════════════════════════════════════════════
+
+    // ── 지표 메타 ──
+    const MC_META = {
+      SPX:    { name:'S&P 500',         color:'#58A6FF', unit:'pt',  val:'5,421',   chg:'+0.43%', pos:true  },
+      NDX:    { name:'NASDAQ 100',      color:'#F78166', unit:'pt',  val:'19,284',  chg:'+0.71%', pos:true  },
+      RUT:    { name:'Russell 2000',    color:'#D29922', unit:'pt',  val:'2,014',   chg:'-0.31%', pos:false },
+      VIX:    { name:'VIX',             color:'#F85149', unit:'',    val:'13.84',   chg:'-0.92%', pos:false },
+      KOSPI:  { name:'KOSPI',           color:'#3FB950', unit:'pt',  val:'2,782',   chg:'-0.31%', pos:false },
+      US10Y:  { name:'US 10Y',          color:'#FF7B72', unit:'%',   val:'4.218',   chg:'-3.2bp', pos:false },
+      US2Y:   { name:'US 2Y',           color:'#FFA657', unit:'%',   val:'4.832',   chg:'-5.1bp', pos:false },
+      SOFR:   { name:'SOFR',            color:'#E3B341', unit:'%',   val:'5.30',    chg:'0.0bp',  pos:true  },
+      RRP:    { name:'연준 RRP',         color:'#A5D6FF', unit:'$B',  val:'412',     chg:'-8.2B',  pos:false },
+      TGA:    { name:'재무부 TGA',       color:'#7EE787', unit:'$B',  val:'738',     chg:'+24B',   pos:true  },
+      GOLD:   { name:'Gold',            color:'#F0C050', unit:'$',   val:'2,384',   chg:'+0.29%', pos:true  },
+      WTI:    { name:'WTI 원유',         color:'#79C0FF', unit:'$',   val:'82.16',   chg:'+0.57%', pos:true  },
+      DXY:    { name:'DXY',             color:'#CE93D8', unit:'',    val:'104.4',   chg:'-0.18%', pos:false },
+      USDKRW: { name:'USD/KRW',         color:'#80DEEA', unit:'₩',   val:'1,381',   chg:'+0.12%', pos:true  },
+      BTC:    { name:'Bitcoin',         color:'#F78166', unit:'$',   val:'68,412',  chg:'+1.24%', pos:true  },
+      ETH:    { name:'Ethereum',        color:'#A5D6FF', unit:'$',   val:'3,641',   chg:'+0.88%', pos:true  },
+      RGTI:   { name:'RGTI',            color:'#FFA657', unit:'$',   val:'12.84',   chg:'+4.21%', pos:true  },
+    };
+
+    // ── 프리셋 정의 ──
+    const MC_PRESETS = {
+      fed_liq:   ['RRP','TGA','SOFR'],
+      risk_on:   ['RGTI','BTC','NDX'],
+      rates:     ['US10Y','US2Y','SOFR'],
+      macro_trio:['SPX','DXY','GOLD'],
+      custom1:   ['SPX','BTC','GOLD','US10Y'],
+    };
+
+    // ── 전역 상태 ──
+    const MC_STATE = {
+      active: new Set(),        // 현재 활성 지표 ID Set
+      tf: '1D',
+      style: 'line',
+      subPanelOpen: true,
+      crosshairOn: true,
+      chart: null,              // LightweightCharts 인스턴스
+      rsiChart: null,
+      volChart: null,
+      series: {},               // id → series 인스턴스
+      rsiSeries: null,
+      volSeries: null,
+      resizeObs: null,
+    };
+
+    // ── 시뮬레이션 데이터 생성 ──
+    function mcGenData(seed, baseVal, vol, days) {
+      const data = [];
+      let v = baseVal;
+      const now = new Date();
+      for (let i = days; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const rng = Math.sin(seed * i * 0.37 + seed) * vol + (Math.random() - 0.49) * vol * 0.6;
+        v = Math.max(v + rng, baseVal * 0.3);
+        data.push({ time: ds, value: parseFloat(v.toFixed(4)) });
+      }
+      return data;
+    }
+
+    function mcGenOHLC(seed, base, vol, days) {
+      const data = [];
+      let v = base;
+      const now = new Date();
+      for (let i = days; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const chg = (Math.sin(seed * i * 0.41) * vol + (Math.random()-0.48)*vol);
+        const o = v;
+        v = Math.max(v + chg, base * 0.3);
+        const hi = Math.max(o,v) * (1 + Math.random()*0.003);
+        const lo = Math.min(o,v) * (1 - Math.random()*0.003);
+        data.push({ time:ds, open:parseFloat(o.toFixed(2)), high:parseFloat(hi.toFixed(2)), low:parseFloat(lo.toFixed(2)), close:parseFloat(v.toFixed(2)) });
+      }
+      return data;
+    }
+
+    function mcGenRSI(days) {
+      const data = [];
+      const now = new Date();
+      for (let i = days; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const rsi = 40 + Math.sin(i*0.18)*25 + (Math.random()-0.5)*8;
+        data.push({ time:ds, value: parseFloat(Math.min(95,Math.max(5,rsi)).toFixed(1)) });
+      }
+      return data;
+    }
+
+    function mcGenVol(days) {
+      const data = [];
+      const now = new Date();
+      for (let i = days; i >= 0; i--) {
+        const d = new Date(now); d.setDate(d.getDate() - i);
+        const ds = d.toISOString().slice(0,10);
+        const vol = 50 + Math.abs(Math.sin(i*0.22))*120 + Math.random()*30;
+        const isUp = Math.random() > 0.45;
+        data.push({ time:ds, value: parseFloat(vol.toFixed(0)), color: isUp ? 'rgba(63,185,80,0.6)' : 'rgba(248,81,73,0.6)' });
+      }
+      return data;
+    }
+
+    // 지표별 기준값
+    const MC_BASE = {
+      SPX:5000, NDX:18000, RUT:1900, VIX:15, KOSPI:2700,
+      US10Y:4.2, US2Y:4.8, SOFR:5.3, RRP:500, TGA:650,
+      GOLD:2200, WTI:78, DXY:104, USDKRW:1360,
+      BTC:60000, ETH:3200, RGTI:9,
+    };
+    const MC_VOL = {
+      SPX:30, NDX:80, RUT:15, VIX:0.8, KOSPI:25,
+      US10Y:0.04, US2Y:0.03, SOFR:0.01, RRP:15, TGA:20,
+      GOLD:18, WTI:1.2, DXY:0.4, USDKRW:8,
+      BTC:1200, ETH:90, RGTI:0.8,
+    };
+
+    // ── 초기화 ──
+    function initMC() {
+      const wrap = document.getElementById('mc-chart-main');
+      const rsiEl = document.getElementById('mc-rsi-chart');
+      const volEl = document.getElementById('mc-vol-chart');
+      if (!wrap || !LightweightCharts) return;
+
+      const opts = {
+        layout: { background:{ color:'#0D1117' }, textColor:'#8B949E' },
+        grid: { vertLines:{ color:'rgba(139,148,158,0.1)' }, horzLines:{ color:'rgba(139,148,158,0.1)' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        rightPriceScale: { borderColor:'rgba(139,148,158,0.2)', mode: LightweightCharts.PriceScaleMode.Percentage },
+        timeScale: { borderColor:'rgba(139,148,158,0.2)', timeVisible:true },
+        handleScroll: true, handleScale: true,
+      };
+
+      MC_STATE.chart = LightweightCharts.createChart(wrap, opts);
+
+      // RSI 서브차트
+      MC_STATE.rsiChart = LightweightCharts.createChart(rsiEl, {
+        layout: { background:{ color:'#0D1117' }, textColor:'#8B949E' },
+        grid: { vertLines:{ color:'rgba(139,148,158,0.06)' }, horzLines:{ color:'rgba(139,148,158,0.06)' } },
+        rightPriceScale: { borderColor:'rgba(139,148,158,0.2)', scaleMargins:{ top:0.1, bottom:0.1 } },
+        timeScale: { visible:false },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+      });
+      MC_STATE.rsiSeries = MC_STATE.rsiChart.addLineSeries({ color:'#58A6FF', lineWidth:1.5 });
+      MC_STATE.rsiSeries.setData(mcGenRSI(365));
+      // RSI 레벨 라인
+      MC_STATE.rsiChart.addLineSeries({ color:'rgba(248,81,73,0.4)', lineWidth:1, lineStyle:2 }).setData(
+        mcGenRSI(365).map(d=>({time:d.time, value:70}))
+      );
+      MC_STATE.rsiChart.addLineSeries({ color:'rgba(63,185,80,0.4)', lineWidth:1, lineStyle:2 }).setData(
+        mcGenRSI(365).map(d=>({time:d.time, value:30}))
+      );
+
+      // Volume 서브차트
+      MC_STATE.volChart = LightweightCharts.createChart(volEl, {
+        layout: { background:{ color:'#0D1117' }, textColor:'#8B949E' },
+        grid: { vertLines:{ color:'rgba(139,148,158,0.06)' }, horzLines:{ color:'rgba(139,148,158,0.06)' } },
+        rightPriceScale: { borderColor:'rgba(139,148,158,0.2)', scaleMargins:{ top:0.1, bottom:0 } },
+        timeScale: { visible:false },
+      });
+      MC_STATE.volSeries = MC_STATE.volChart.addHistogramSeries({ priceFormat:{ type:'volume' } });
+      MC_STATE.volSeries.setData(mcGenVol(365));
+
+      // 크로스헤어 시간 동기화 (메인 → 서브)
+      MC_STATE.chart.subscribeCrosshairMove(param => {
+        if (param.time) {
+          MC_STATE.rsiChart.setCrosshairPosition(0, param.time, MC_STATE.rsiSeries);
+          MC_STATE.volChart.setCrosshairPosition(0, param.time, MC_STATE.volSeries);
+        }
+      });
+
+      // ResizeObserver
+      if (MC_STATE.resizeObs) MC_STATE.resizeObs.disconnect();
+      MC_STATE.resizeObs = new ResizeObserver(() => mcHandleResize());
+      MC_STATE.resizeObs.observe(wrap);
+      MC_STATE.resizeObs.observe(rsiEl);
+      MC_STATE.resizeObs.observe(volEl);
+
+      // 기본 프리셋 적용
+      mcApplyPreset(document.querySelector('[data-preset="fed_liq"]'), 'fed_liq');
+    }
+
+    // ── 리사이즈 핸들러 ──
+    function mcHandleResize() {
+      const wrap = document.getElementById('mc-chart-main');
+      const rsiEl = document.getElementById('mc-rsi-chart');
+      const volEl = document.getElementById('mc-vol-chart');
+      if (MC_STATE.chart && wrap) {
+        MC_STATE.chart.resize(wrap.clientWidth, wrap.clientHeight);
+      }
+      if (MC_STATE.rsiChart && rsiEl) {
+        MC_STATE.rsiChart.resize(rsiEl.clientWidth, rsiEl.clientHeight);
+      }
+      if (MC_STATE.volChart && volEl) {
+        MC_STATE.volChart.resize(volEl.clientWidth, volEl.clientHeight);
+      }
+    }
+
+    // ── 지표 토글 (체크박스 ↔ 차트 ↔ 범례 동기화) ──
+    function mcToggleIndicator(id) {
+      if (!MC_STATE.chart) return;
+      if (MC_STATE.active.has(id)) {
+        mcRemoveIndicator(id);
+      } else {
+        mcAddIndicator(id);
+      }
+      mcSyncCheckboxes();
+      mcRenderLegend();
+    }
+
+    function mcAddIndicator(id) {
+      if (MC_STATE.active.has(id) || MC_STATE.series[id]) return;
+      const meta = MC_META[id];
+      if (!meta) return;
+      const days = 365;
+      let s;
+      if (MC_STATE.style === 'candle') {
+        s = MC_STATE.chart.addCandlestickSeries({
+          upColor:'#3FB950', downColor:'#F85149',
+          borderUpColor:'#3FB950', borderDownColor:'#F85149',
+          wickUpColor:'#3FB950', wickDownColor:'#F85149',
+        });
+        s.setData(mcGenOHLC(id.charCodeAt(0), MC_BASE[id]||100, MC_VOL[id]||5, days));
+      } else if (MC_STATE.style === 'area') {
+        s = MC_STATE.chart.addAreaSeries({
+          lineColor: meta.color, topColor: meta.color+'44', bottomColor: meta.color+'05',
+          lineWidth: 2,
+        });
+        s.setData(mcGenData(id.charCodeAt(0), MC_BASE[id]||100, MC_VOL[id]||5, days));
+      } else {
+        s = MC_STATE.chart.addLineSeries({ color: meta.color, lineWidth: 2, priceLineVisible: false });
+        s.setData(mcGenData(id.charCodeAt(0), MC_BASE[id]||100, MC_VOL[id]||5, days));
+      }
+      MC_STATE.series[id] = s;
+      MC_STATE.active.add(id);
+    }
+
+    function mcRemoveIndicator(id) {
+      if (!MC_STATE.active.has(id)) return;
+      if (MC_STATE.series[id] && MC_STATE.chart) {
+        try { MC_STATE.chart.removeSeries(MC_STATE.series[id]); } catch(e){}
+        delete MC_STATE.series[id];
+      }
+      MC_STATE.active.delete(id);
+    }
+
+    // ── 범례 렌더링 ──
+    function mcRenderLegend() {
+      const el = document.getElementById('mc-legend');
+      if (!el) return;
+      el.innerHTML = [...MC_STATE.active].map(id => {
+        const m = MC_META[id];
+        if (!m) return '';
+        return \`<div class="mc-legend-item">
+          <div class="mc-legend-dot" style="background:\${m.color}"></div>
+          <span class="mc-legend-name">\${m.name}</span>
+          <span class="mc-legend-val">\${m.val}</span>
+          <span class="mc-legend-chg \${m.pos?'pos':'neg'}">\${m.chg}</span>
+          <div class="mc-legend-actions">
+            <button class="mc-legend-act-btn" title="숨기기" onclick="mcHideSeries('\${id}')"><i class="fas fa-eye-slash"></i></button>
+            <button class="mc-legend-act-btn" title="제거" onclick="mcRemoveFromLegend('\${id}')"><i class="fas fa-times"></i></button>
+          </div>
+        </div>\`;
+      }).join('');
+    }
+
+    function mcHideSeries(id) {
+      if (MC_STATE.series[id]) {
+        const s = MC_STATE.series[id];
+        // visible 토글
+        const opts = s.options();
+        s.applyOptions({ visible: !(opts.visible !== false) });
+      }
+    }
+
+    function mcRemoveFromLegend(id) {
+      mcRemoveIndicator(id);
+      mcSyncCheckboxes();
+      mcRenderLegend();
+    }
+
+    // ── 체크박스 동기화 ──
+    function mcSyncCheckboxes() {
+      document.querySelectorAll('.mc-cb').forEach(cb => {
+        cb.checked = MC_STATE.active.has(cb.dataset.id);
+      });
+    }
+
+    // ── 프리셋 적용 ──
+    function mcApplyPreset(btn, presetId) {
+      const preset = MC_PRESETS[presetId];
+      if (!preset) return;
+      // 기존 지표 전부 제거
+      [...MC_STATE.active].forEach(id => mcRemoveIndicator(id));
+      // 프리셋 지표 추가
+      preset.forEach(id => mcAddIndicator(id));
+      mcSyncCheckboxes();
+      mcRenderLegend();
+      // 버튼 active 상태
+      document.querySelectorAll('.mc-preset-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    // ── 타임프레임 ──
+    function mcSetTf(btn, tf) {
+      MC_STATE.tf = tf;
+      document.querySelectorAll('.mc-tf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 데이터 재생성 (실제 구현 시 API 호출로 교체)
+      const days = tf==='15m'?7 : tf==='1h'?30 : tf==='1D'?365 : tf==='1W'?365*2 : 365*5;
+      [...MC_STATE.active].forEach(id => {
+        if (!MC_STATE.series[id]) return;
+        if (MC_STATE.style === 'candle') {
+          MC_STATE.series[id].setData(mcGenOHLC(id.charCodeAt(0), MC_BASE[id]||100, MC_VOL[id]||5, days));
+        } else {
+          MC_STATE.series[id].setData(mcGenData(id.charCodeAt(0), MC_BASE[id]||100, MC_VOL[id]||5, days));
+        }
+      });
+      MC_STATE.rsiSeries.setData(mcGenRSI(days));
+      MC_STATE.volSeries.setData(mcGenVol(days));
+    }
+
+    // ── 차트 스타일 ──
+    function mcSetStyle(btn, style) {
+      MC_STATE.style = style;
+      document.querySelectorAll('.mc-style-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // 모든 시리즈 재생성
+      const activeIds = [...MC_STATE.active];
+      activeIds.forEach(id => mcRemoveIndicator(id));
+      activeIds.forEach(id => mcAddIndicator(id));
+      mcRenderLegend();
+    }
+
+    // ── 사이드바 토글 ──
+    function mcToggleSidebar() {
+      const sb = document.getElementById('mc-sidebar');
+      if (!sb) return;
+      sb.classList.toggle('collapsed');
+      // 사이드바 전환 후 차트 리사이즈 (transition 0.22s 후)
+      setTimeout(() => mcHandleResize(), 240);
+    }
+
+    // ── 서브 패널 토글 ──
+    function mcToggleSubPanel(btn) {
+      MC_STATE.subPanelOpen = !MC_STATE.subPanelOpen;
+      const el = document.getElementById('mc-sub-panels');
+      if (el) el.classList.toggle('hidden', !MC_STATE.subPanelOpen);
+      btn.classList.toggle('active', MC_STATE.subPanelOpen);
+      setTimeout(() => mcHandleResize(), 240);
+    }
+
+    // ── 크로스헤어 토글 ──
+    function mcToggleCrosshair(btn) {
+      MC_STATE.crosshairOn = !MC_STATE.crosshairOn;
+      btn.classList.toggle('active', MC_STATE.crosshairOn);
+      if (MC_STATE.chart) {
+        MC_STATE.chart.applyOptions({
+          crosshair: { mode: MC_STATE.crosshairOn
+            ? LightweightCharts.CrosshairMode.Normal
+            : LightweightCharts.CrosshairMode.Hidden }
+        });
+      }
+    }
+
+    // ── 줌 초기화 ──
+    function mcResetZoom() {
+      if (MC_STATE.chart) MC_STATE.chart.timeScale().fitContent();
+      if (MC_STATE.rsiChart) MC_STATE.rsiChart.timeScale().fitContent();
+      if (MC_STATE.volChart) MC_STATE.volChart.timeScale().fitContent();
+    }
+
+    // ── 사이드바 검색 필터 ──
+    function mcSbFilter() {
+      const kw = (document.getElementById('mc-sb-search')?.value || '').toLowerCase();
+      document.querySelectorAll('.mc-sb-item').forEach(item => {
+        const nm = item.querySelector('.mc-sb-name')?.textContent.toLowerCase() || '';
+        item.style.display = nm.includes(kw) ? '' : 'none';
+      });
+    }
+
+    // ── 아코디언 그룹 토글 ──
+    function mcToggleGroup(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('collapsed');
+    }
+
+    // ── 페이지 진입 시 MC 초기화 ──
+    // navigate() 후 page-chart 활성화 될 때 호출
+    (function patchNavigateForMC() {
+      const _origNav = window.navigate || function(){};
+      // navigate 함수는 글로벌이므로 래핑
+      const origBody = navigate.toString();
+      // page 'chart' 진입 시 initMC 호출
+      document.addEventListener('click', e => {
+        const navItem = e.target.closest('.nav-item[data-page="chart"]');
+        if (navItem) {
+          requestAnimationFrame(() => {
+            if (!MC_STATE.chart) initMC();
+            else mcHandleResize();
+          });
+        }
+      });
+    })();
 
     // ══════════════════════════════════════════════
     // IIT — 이슈-인사이트 스레드 JS
