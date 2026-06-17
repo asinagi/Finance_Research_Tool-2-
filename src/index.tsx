@@ -1205,9 +1205,9 @@ app.get('*', (c) => {
       min-height: 0;
     }
 
-    /* IIT 패널 (좌측 60%) */
+    /* IIT 패널 (좌측 38%) */
     .db-iit-panel {
-      flex: 0 0 60%;
+      flex: 0 0 38%;
       min-width: 0;
       border-right: 1px solid var(--border-color);
       display: flex;
@@ -1215,15 +1215,171 @@ app.get('*', (c) => {
       overflow: hidden;
     }
 
-    /* Radar 패널 (우측 40%) */
+    /* Treemap 패널 (중앙 42%) */
+    .db-tm-panel {
+      flex: 0 0 42%;
+      min-width: 0;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* Radar 패널 (우측 20%) */
     .db-radar-panel {
-      flex: 0 0 40%;
+      flex: 1;
       min-width: 0;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       background: var(--bg-primary);
     }
+
+    /* ══════════════════════════════════════════════
+       DB-TM — 대시보드 내장 미니 트리맵 위젯
+    ══════════════════════════════════════════════ */
+    .dbtm-root {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    /* 컴팩트 헤더 */
+    .dbtm-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 28px;
+      flex-shrink: 0;
+      background: #0B0E14;
+      border-bottom: 1px solid #1E2738;
+      padding: 0 8px;
+    }
+    .dbtm-title {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #8B949E;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .dbtm-sep { width: 1px; height: 14px; background: #1E2738; flex-shrink: 0; }
+    /* 브레드크럼 (인라인) */
+    .dbtm-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .dbtm-bc-item {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #58A6FF;
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 1px 3px;
+      border-radius: 2px;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dbtm-bc-item:hover { background: rgba(88,166,255,0.12); }
+    .dbtm-bc-item.active { color: #C9D1D9; cursor: default; }
+    .dbtm-bc-sep { font-size: 9px; color: #3D4452; margin: 0 1px; }
+    /* 우측 액션 버튼들 */
+    .dbtm-actions {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .dbtm-btn {
+      background: none;
+      border: 1px solid #1E2738;
+      border-radius: 2px;
+      color: #3D4452;
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 1px 5px;
+      cursor: pointer;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      transition: border-color 0.12s, color 0.12s;
+      white-space: nowrap;
+    }
+    .dbtm-btn:hover { border-color: #58A6FF; color: #58A6FF; }
+    .dbtm-btn.active { border-color: #58A6FF; color: #58A6FF; background: rgba(88,166,255,0.08); }
+    /* 자산군 필터 토글 (컴팩트 칩) */
+    .dbtm-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .dbtm-chip {
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      border: 1px solid #1E2738;
+      border-radius: 10px;
+      padding: 1px 5px;
+      cursor: pointer;
+      color: #3D4452;
+      background: none;
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    .dbtm-chip.on { color: #E6EDF3; background: rgba(255,255,255,0.06); border-color: #3D4452; }
+    .dbtm-chip[data-cls=equity].on { border-color: #3FB950; color: #3FB950; }
+    .dbtm-chip[data-cls=bond].on   { border-color: #58A6FF; color: #58A6FF; }
+    .dbtm-chip[data-cls=commodity].on { border-color: #F0C050; color: #F0C050; }
+    .dbtm-chip[data-cls=fx].on     { border-color: #CE93D8; color: #CE93D8; }
+    .dbtm-chip[data-cls=crypto].on { border-color: #F78166; color: #F78166; }
+    /* 캔버스 */
+    .dbtm-canvas {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #000;
+    }
+    #dbtm-echarts {
+      width: 100%;
+      height: 100%;
+    }
+    .dbtm-lock {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      pointer-events: all;
+    }
+    .dbtm-lock.active { display: block; }
+    /* 링크 버튼 — 전체화면으로 이동 */
+    .dbtm-expand-btn {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      background: rgba(13,17,23,0.8);
+      border: 1px solid #1E2738;
+      border-radius: 3px;
+      color: #3D4452;
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 6px;
+      cursor: pointer;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .dbtm-expand-btn:hover { border-color: #58A6FF; color: #58A6FF; }
 
     /* ══════════════════════════════════════════════
        MPR — 매크로 국면 나침반 (Macro Phase Radar)
@@ -4395,6 +4551,11 @@ app.get('*', (c) => {
           else if (typeof tmHandleResize === 'function') { tmHandleResize(); }
         }, 50));
       }
+      if (page === 'dashboard') {
+        requestAnimationFrame(() => setTimeout(() => {
+          if (typeof dbtmHandleResize === 'function') { dbtmHandleResize(); }
+        }, 80));
+      }
     }
 
     // Bind nav items
@@ -4920,7 +5081,55 @@ app.get('*', (c) => {
           </div>
           <!-- /db-iit-panel -->
 
-          <!-- ═══ 우측 40%: 매크로 국면 나침반 ═══ -->
+          <!-- ═══ 중앙 42%: 크로스에셋 히트맵 트리맵 ═══ -->
+          <div class="db-tm-panel">
+            <div class="dbtm-root" id="dbtm-root">
+
+              <!-- 컴팩트 헤더 -->
+              <div class="dbtm-header">
+                <span class="dbtm-title"><i class="fas fa-th" style="margin-right:4px;font-size:8px;"></i>히트맵</span>
+                <div class="dbtm-sep"></div>
+                <!-- 브레드크럼 -->
+                <div class="dbtm-breadcrumb" id="dbtm-breadcrumb">
+                  <span class="dbtm-bc-item active" onclick="dbtmNavTo(-1)">전체</span>
+                </div>
+                <div class="dbtm-sep"></div>
+                <!-- 자산군 칩 필터 -->
+                <div class="dbtm-filter-row" id="dbtm-filter-row">
+                  <button class="dbtm-chip on" data-cls="equity" onclick="dbtmToggleChip(this)">주식</button>
+                  <button class="dbtm-chip on" data-cls="bond" onclick="dbtmToggleChip(this)">채권</button>
+                  <button class="dbtm-chip on" data-cls="commodity" onclick="dbtmToggleChip(this)">원자재</button>
+                  <button class="dbtm-chip on" data-cls="fx" onclick="dbtmToggleChip(this)">FX</button>
+                  <button class="dbtm-chip on" data-cls="crypto" onclick="dbtmToggleChip(this)">크립토</button>
+                </div>
+                <div class="dbtm-actions">
+                  <button class="dbtm-btn" id="dbtm-metric-btn" onclick="dbtmToggleMetric()" title="면적 기준 전환">VOL</button>
+                  <button class="dbtm-btn" onclick="dbtmNavTo(-1)" title="루트로">
+                    <i class="fas fa-home"></i>
+                  </button>
+                  <button class="dbtm-btn" onclick="dbtmDrillUp()" title="한 단계 위로">
+                    <i class="fas fa-level-up-alt"></i>
+                  </button>
+                  <button class="dbtm-btn" onclick="navigate('screener')" title="전체화면으로">
+                    <i class="fas fa-expand-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 캔버스 -->
+              <div class="dbtm-canvas">
+                <div id="dbtm-echarts"></div>
+                <div class="dbtm-lock" id="dbtm-lock"></div>
+                <button class="dbtm-expand-btn" onclick="navigate('screener')">
+                  <i class="fas fa-expand-alt"></i> 전체화면
+                </button>
+              </div>
+
+            </div>
+          </div>
+          <!-- /db-tm-panel -->
+
+          <!-- ═══ 우측 20%: 매크로 국면 나침반 ═══ -->
           <div class="db-radar-panel">
             <div class="mpr-root" id="mpr-root">
 
@@ -4955,10 +5164,11 @@ app.get('*', (c) => {
         <!-- /db-body -->
       \`;
 
-      // IIT + MPR 위젯 초기화
+      // IIT + MPR + DBTM 위젯 초기화
       requestAnimationFrame(() => {
         initIIT();
         initMPR();
+        setTimeout(() => initDBTM(), 60); // DBTM은 DOM 크기 확정 후
       });
     }
 
@@ -6081,6 +6291,214 @@ app.get('*', (c) => {
     }
 
     // ── MC 초기화는 navigate() 훅에서 처리 (위 navigate 함수 내 page==='chart' 분기 참조) ──
+
+    // ══════════════════════════════════════════════
+    // DBTM — 대시보드 내장 미니 트리맵 위젯
+    // (TM_DATA, tmLerpColor, tmFindNode 공유)
+    // ══════════════════════════════════════════════
+
+    const DBTM_STATE = {
+      chart: null,
+      resizeObs: null,
+      metric: 'volume',
+      enabledAssets: new Set(['equity','bond','commodity','fx','crypto']),
+      path: [],
+      locked: false,
+      lockTimer: null,
+      hoveredNodeId: null,
+    };
+
+    // ECharts 옵션 빌더 (TM용 tmBuildOption 미니 버전 — 라벨 더 작게)
+    function dbtmBuildOption(node) {
+      const metric = DBTM_STATE.metric;
+      const enabled = DBTM_STATE.enabledAssets;
+
+      let children = node.children || [];
+      if (node.id === 'root') {
+        children = children.filter(c => enabled.has(c.assetClass));
+      }
+
+      function toNode(n) {
+        const val = metric === 'volume' ? (n.volume || 0) : (n.mcap || 0);
+        const kids = (n.children || []).map(toNode);
+        const computedVal = kids.length > 0 ? kids.reduce((s,k) => s + (k.value||0), 0) : val;
+        const chgPct = n.chg || 0;
+        const bgColor = tmLerpColor(chgPct / 3);
+        return {
+          id: n.id, name: n.name, value: computedVal,
+          rawChg: chgPct, hasChildren: (n.children||[]).length > 0,
+          assetClass: n.assetClass,
+          itemStyle: { color: bgColor, borderColor: '#000', borderWidth: 0.5 },
+          children: kids,
+        };
+      }
+
+      const treeData = children.map(toNode);
+
+      return {
+        series: [{
+          type: 'treemap', id: 'dbtm-series',
+          animationDurationUpdate: 500, animationEasingUpdate: 'cubicInOut',
+          roam: false, nodeClick: false,
+          data: treeData,
+          width: '100%', height: '100%',
+          top: 0, bottom: 0, left: 0, right: 0,
+          squareRatio: 1.618,
+          leafDepth: null,
+          drillDownIcon: '',
+          levels: [
+            { itemStyle: { borderColor: '#000', borderWidth: 1.5, gapWidth: 1.5 }, upperLabel: { show: false } },
+            { itemStyle: { borderColor: '#000', borderWidth: 1, gapWidth: 1 } },
+            { itemStyle: { borderColor: '#000', borderWidth: 0.5, gapWidth: 0.5 } },
+          ],
+          label: {
+            show: true, position: 'inside',
+            align: 'center', verticalAlign: 'middle',
+            overflow: 'truncate',
+            rich: {
+              name: { fontSize: 10, fontFamily: 'Inter,sans-serif', color: 'rgba(230,237,243,0.88)', fontWeight:'700', lineHeight: 13 },
+              chg:  { fontSize: 8,  fontFamily: 'JetBrains Mono,monospace', color: 'rgba(230,237,243,0.55)', lineHeight: 11 },
+            },
+            formatter: p => '{name|' + p.data.name + '}\\n{chg|' + ((p.data.rawChg||0) >= 0 ? '+' : '') + (p.data.rawChg||0).toFixed(2) + '%}',
+          },
+          upperLabel: { show: false },
+          breadcrumb: { show: false },
+          tooltip: { show: false },
+        }],
+        tooltip: {
+          show: true, trigger: 'item',
+          backgroundColor: 'rgba(13,17,23,0.95)', borderColor: '#1E2738', borderWidth: 1,
+          padding: [5,8],
+          textStyle: { color: '#E6EDF3', fontSize: 10, fontFamily: 'Inter,sans-serif' },
+          formatter: p => {
+            if (!p.data) return '';
+            const d = p.data;
+            const chg = d.rawChg || 0;
+            const chgStr = (chg >= 0 ? '<span style="color:#3FB950">+' : '<span style="color:#F85149">') + chg.toFixed(2) + '%</span>';
+            return '<b>' + d.name + '</b><br>' +
+              '등락률: ' + chgStr + '<br>' +
+              '<span style="color:#3D4452;font-size:9px">' + (DBTM_STATE.metric==='volume' ? '$'+(d.value/1000).toFixed(1)+'B 거래대금' : '$'+(d.value/1000).toFixed(1)+'T 시가총액') + '</span>' +
+              (d.hasChildren ? '<br><span style="color:#3D4452;font-size:8px">↓ 휠 다운으로 상세</span>' : '');
+          },
+        },
+        backgroundColor: '#000',
+      };
+    }
+
+    // 초기화
+    function initDBTM() {
+      const el = document.getElementById('dbtm-echarts');
+      if (!el || DBTM_STATE.chart) return;
+      if (typeof echarts === 'undefined') return;
+
+      DBTM_STATE.chart = echarts.init(el, null, { renderer: 'canvas', useDirtyRect: true });
+      dbtmRender();
+      dbtmSetupWheel();
+
+      if (DBTM_STATE.resizeObs) DBTM_STATE.resizeObs.disconnect();
+      DBTM_STATE.resizeObs = new ResizeObserver(() => dbtmHandleResize());
+      DBTM_STATE.resizeObs.observe(el);
+    }
+
+    function dbtmHandleResize() {
+      if (DBTM_STATE.chart) DBTM_STATE.chart.resize();
+    }
+
+    function dbtmRender() {
+      if (!DBTM_STATE.chart) return;
+      const node = tmFindNode(TM_DATA, DBTM_STATE.path);
+      DBTM_STATE.chart.setOption(dbtmBuildOption(node), true);
+      dbtmUpdateBreadcrumb();
+    }
+
+    function dbtmUpdateBreadcrumb() {
+      const el = document.getElementById('dbtm-breadcrumb');
+      if (!el) return;
+      const items = [{ id: -1, name: '전체' }];
+      DBTM_STATE.path.forEach((id, i) => {
+        const node = tmFindNode(TM_DATA, DBTM_STATE.path.slice(0, i+1));
+        items.push({ id: i, name: node.name });
+      });
+      el.innerHTML = items.map((item, i) => {
+        const isLast = i === items.length - 1;
+        return (i > 0 ? '<span class="dbtm-bc-sep">›</span>' : '') +
+          '<span class="dbtm-bc-item' + (isLast ? ' active' : '') + '" onclick="dbtmNavTo(' + item.id + ')">' + item.name + '</span>';
+      }).join('');
+    }
+
+    function dbtmNavTo(depthIdx) {
+      DBTM_STATE.path = depthIdx < 0 ? [] : DBTM_STATE.path.slice(0, depthIdx + 1);
+      dbtmRender();
+    }
+
+    function dbtmDrillDown(nodeId) {
+      if (DBTM_STATE.locked) return;
+      const nextPath = [...DBTM_STATE.path, nodeId];
+      const node = tmFindNode(TM_DATA, nextPath);
+      if (!node || !(node.children||[]).length) {
+        // 리프: 컨테이너 bounce
+        const c = document.getElementById('dbtm-echarts');
+        if (c) { c.classList.remove('tm-bounce'); void c.offsetWidth; c.classList.add('tm-bounce'); setTimeout(() => c.classList.remove('tm-bounce'), 400); }
+        return;
+      }
+      DBTM_STATE.locked = true;
+      DBTM_STATE.path = nextPath;
+      dbtmRender();
+      clearTimeout(DBTM_STATE.lockTimer);
+      DBTM_STATE.lockTimer = setTimeout(() => { DBTM_STATE.locked = false; }, 650);
+    }
+
+    function dbtmDrillUp() {
+      if (DBTM_STATE.locked || DBTM_STATE.path.length === 0) return;
+      DBTM_STATE.locked = true;
+      DBTM_STATE.path.pop();
+      dbtmRender();
+      clearTimeout(DBTM_STATE.lockTimer);
+      DBTM_STATE.lockTimer = setTimeout(() => { DBTM_STATE.locked = false; }, 650);
+    }
+
+    function dbtmToggleChip(btn) {
+      btn.classList.toggle('on');
+      DBTM_STATE.enabledAssets.clear();
+      document.querySelectorAll('.dbtm-chip.on').forEach(c => DBTM_STATE.enabledAssets.add(c.dataset.cls));
+      // 현재 path가 필터 제거된 자산군이면 루트로
+      if (DBTM_STATE.path.length > 0) {
+        const top = TM_DATA.children.find(c => c.id === DBTM_STATE.path[0]);
+        if (top && !DBTM_STATE.enabledAssets.has(top.assetClass)) DBTM_STATE.path = [];
+      }
+      dbtmRender();
+    }
+
+    function dbtmToggleMetric() {
+      DBTM_STATE.metric = DBTM_STATE.metric === 'volume' ? 'mcap' : 'volume';
+      const btn = document.getElementById('dbtm-metric-btn');
+      if (btn) { btn.textContent = DBTM_STATE.metric === 'volume' ? 'VOL' : 'MCAP'; }
+      dbtmRender();
+    }
+
+    function dbtmSetupWheel() {
+      const wrap = document.getElementById('dbtm-root');
+      if (!wrap) return;
+      let _lastWheelTime = 0;
+      const THROTTLE_MS = 420;
+
+      if (DBTM_STATE.chart) {
+        DBTM_STATE.chart.on('mouseover', p => { if (p.data) DBTM_STATE.hoveredNodeId = p.data.id; });
+        DBTM_STATE.chart.on('mouseout',  () => { DBTM_STATE.hoveredNodeId = null; });
+      }
+
+      wrap.addEventListener('wheel', e => {
+        e.preventDefault(); e.stopPropagation();
+        const now = Date.now();
+        if (now - _lastWheelTime < THROTTLE_MS) return;
+        _lastWheelTime = now;
+        if (e.deltaY > 0) {
+          if (DBTM_STATE.hoveredNodeId) dbtmDrillDown(DBTM_STATE.hoveredNodeId);
+        } else {
+          dbtmDrillUp();
+        }
+      }, { passive: false });
+    }
 
     // ══════════════════════════════════════════════
     // TM — 글로벌 크로스에셋 휠-줌 히트맵 트리맵
