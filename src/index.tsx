@@ -897,14 +897,260 @@ app.get('*', (c) => {
       min-height: 0;
     }
 
+    /* ══════════════════════════════════════════════
+       IIT — 이슈-인사이트 스레드 (Issue-Insight Thread)
+    ══════════════════════════════════════════════ */
+    .iit-root {
+      flex: 1; display: flex; min-height: 0; overflow: hidden;
+    }
+    /* ── A. 사이드바 ── */
+    .iit-sidebar {
+      width: 210px; min-width: 210px;
+      border-right: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: width 0.22s ease, min-width 0.22s ease;
+    }
+    .iit-sidebar.collapsed { width: 0; min-width: 0; border-right: none; }
+    .iit-sb-inner {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 10px 0 16px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .iit-sb-inner::-webkit-scrollbar { width: 3px; }
+    .iit-sb-inner::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+    .iit-sb-search { position: relative; margin: 0 10px 8px; }
+    .iit-sb-search-icon {
+      position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+      font-size: 9px; color: var(--text-muted); pointer-events: none;
+    }
+    .iit-sb-input {
+      width: 100%; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 4px;
+      color: var(--text-primary); font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 5px 8px 5px 24px; outline: none; box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .iit-sb-input:focus { border-color: var(--accent-blue); }
+    .iit-sb-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+    .iit-reset-btn {
+      margin: 0 10px 10px; background: none;
+      border: 1px solid var(--border-color); border-radius: 4px;
+      color: var(--text-muted); font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 4px 8px; cursor: pointer; text-align: left;
+      transition: border-color 0.15s, color 0.15s; letter-spacing: 0.04em;
+    }
+    .iit-reset-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .iit-pf-toggle {
+      margin: 0 10px 12px; display: flex; align-items: center;
+      justify-content: space-between; cursor: pointer;
+      padding: 6px 8px; background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 4px;
+      transition: border-color 0.15s;
+    }
+    .iit-pf-toggle:hover { border-color: var(--accent-blue); }
+    .iit-pf-label { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+    .iit-pf-label i { color: var(--accent-blue); margin-right: 5px; }
+    .iit-toggle-switch {
+      width: 28px; height: 14px; background: var(--border-color);
+      border-radius: 7px; position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .iit-toggle-switch.on { background: var(--accent-blue); }
+    .iit-toggle-knob {
+      width: 10px; height: 10px; background: #fff; border-radius: 50%;
+      position: absolute; top: 2px; left: 2px; transition: left 0.2s;
+    }
+    .iit-toggle-switch.on .iit-toggle-knob { left: 16px; }
+    .iit-facet-group { padding: 0 0 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 4px; }
+    .iit-facet-group:last-child { border-bottom: none; }
+    .iit-facet-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); padding: 6px 10px 4px; font-family: 'JetBrains Mono', monospace;
+    }
+    .iit-facet-title i { color: var(--accent-blue); margin-right: 5px; font-size: 8px; }
+    .iit-facet-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 3px 10px; cursor: pointer; transition: background 0.12s;
+    }
+    .iit-facet-item:hover { background: rgba(88,166,255,0.05); }
+    .iit-cb { accent-color: var(--accent-blue); width: 11px; height: 11px; cursor: pointer; flex-shrink: 0; }
+    .iit-facet-name { flex: 1; font-size: 10px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+    .iit-facet-cnt {
+      font-size: 9px; color: var(--text-muted); background: var(--bg-card);
+      border: 1px solid var(--border-color); border-radius: 8px;
+      padding: 0 5px; font-family: 'JetBrains Mono', monospace;
+    }
+    /* ── B. 메인 ── */
+    .iit-main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+    .iit-ctrl-hdr {
+      display: flex; align-items: center; gap: 12px;
+      padding: 7px 14px; border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary); flex-shrink: 0;
+    }
+    .iit-ctrl-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .iit-sidebar-toggle {
+      background: none; border: 1px solid var(--border-color); border-radius: 4px;
+      color: var(--text-muted); font-size: 11px;
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: border-color 0.15s, color 0.15s; flex-shrink: 0;
+    }
+    .iit-sidebar-toggle:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .iit-ctrl-title { font-size: 11px; font-weight: 700; color: var(--text-primary); white-space: nowrap; letter-spacing: 0.03em; }
+    .iit-ctrl-sub { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+    .iit-ctrl-center { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; }
+    .iit-preset-btn {
+      background: none; border: 1px solid var(--border-color); border-radius: 4px;
+      color: var(--text-muted); font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      padding: 3px 10px; cursor: pointer; letter-spacing: 0.04em;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .iit-preset-btn:hover, .iit-preset-btn.active {
+      background: rgba(88,166,255,0.12); border-color: var(--accent-blue); color: var(--accent-blue);
+    }
+    .iit-ctrl-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .iit-sort-label { font-size: 9px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .iit-sort-btn {
+      background: none; border: 1px solid transparent; border-radius: 3px;
+      color: var(--text-muted); font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      padding: 2px 7px; cursor: pointer; transition: all 0.15s;
+    }
+    .iit-sort-btn:hover, .iit-sort-btn.active { border-color: var(--border-color); color: var(--text-primary); }
+    /* 타임라인 */
+    .iit-timeline {
+      flex: 1; overflow-y: auto; padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .iit-timeline::-webkit-scrollbar { width: 4px; }
+    .iit-timeline::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+    .iit-date-divider { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px; }
+    .iit-date-divider:first-child { margin-top: 0; }
+    .iit-date-line { flex: 1; height: 1px; background: var(--border-color); }
+    .iit-date-label {
+      font-size: 9px; font-weight: 700; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    /* 이슈 카드 */
+    .iit-issue {
+      border: 1px solid var(--border-color); border-radius: 6px;
+      margin-bottom: 8px; background: var(--bg-card); overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .iit-issue:hover { border-color: rgba(88,166,255,0.3); }
+    .iit-issue.pf-positive { border-left: 3px solid #3FB950; }
+    .iit-issue.pf-negative { border-left: 3px solid #F85149; }
+    .iit-issue.pf-neutral  { border-left: 3px solid #D29922; }
+    .iit-issue-hdr {
+      padding: 10px 12px; cursor: pointer;
+      display: flex; flex-direction: column; gap: 6px; transition: background 0.12s;
+    }
+    .iit-issue-hdr:hover { background: rgba(88,166,255,0.03); }
+    .iit-issue-meta { display: flex; align-items: center; gap: 6px; }
+    .iit-urgency { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .iit-urgency.high   { background: #F85149; box-shadow: 0 0 5px rgba(248,81,73,0.5); }
+    .iit-urgency.medium { background: #D29922; }
+    .iit-urgency.low    { background: #3FB950; }
+    .iit-issue-time { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+    .iit-issue-type {
+      font-size: 8px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 1px 6px; border-radius: 3px; text-transform: uppercase;
+    }
+    .iit-type-issue   { background: rgba(88,166,255,0.15); color: #58A6FF; }
+    .iit-type-alert   { background: rgba(248,81,73,0.15);  color: #F85149; }
+    .iit-type-insight { background: rgba(63,185,80,0.15);  color: #3FB950; }
+    .iit-issue-headline {
+      font-size: 12px; font-weight: 600; color: var(--text-primary);
+      line-height: 1.45; letter-spacing: 0.01em;
+    }
+    .iit-tag-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .iit-tag {
+      font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      padding: 1px 6px; border-radius: 3px;
+      background: rgba(139,148,158,0.1); color: var(--text-muted);
+      border: 1px solid var(--border-color); cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .iit-tag:hover, .iit-tag.active {
+      background: rgba(88,166,255,0.12); color: var(--accent-blue); border-color: var(--accent-blue);
+    }
+    .iit-expand-row { display: flex; align-items: center; gap: 6px; padding: 0 12px 10px; cursor: pointer; }
+    .iit-expand-btn {
+      font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--accent-blue);
+      background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 3px; padding: 2px 8px; cursor: pointer;
+      transition: background 0.12s; display: flex; align-items: center; gap: 4px;
+    }
+    .iit-expand-btn:hover { background: rgba(88,166,255,0.16); }
+    .iit-expand-arrow { transition: transform 0.22s; display: inline-block; }
+    .iit-expand-btn.open .iit-expand-arrow { transform: rotate(180deg); }
+    /* 아코디언 스레드 */
+    .iit-thread { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .iit-thread.open { max-height: 800px; border-top: 1px solid var(--border-color); }
+    .iit-cluster { margin: 10px 12px; border: 1px solid var(--border-color); border-radius: 5px; overflow: hidden; }
+    .iit-cluster-hdr {
+      background: rgba(88,166,255,0.05); padding: 5px 10px;
+      font-size: 9px; font-weight: 700; color: var(--accent-blue);
+      font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; gap: 5px;
+    }
+    /* 인사이트 아이템 */
+    .iit-insight-item {
+      display: flex; gap: 10px; padding: 8px 10px;
+      border-bottom: 1px solid var(--border-color);
+      transition: background 0.12s;
+    }
+    .iit-insight-item:last-child { border-bottom: none; }
+    .iit-insight-item:hover { background: rgba(88,166,255,0.03); }
+    .iit-tree-line { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; padding-top: 2px; }
+    .iit-tree-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-color); flex-shrink: 0; }
+    .iit-tree-stem { flex: 1; width: 1px; background: var(--border-color); min-height: 12px; }
+    .iit-insight-item:last-child .iit-tree-stem { display: none; }
+    .iit-insight-body { flex: 1; min-width: 0; }
+    .iit-insight-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-wrap: wrap; }
+    .iit-insight-time { font-size: 8px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+    .iit-insight-src {
+      font-size: 8px; font-weight: 600; letter-spacing: 0.04em;
+      padding: 1px 5px; border-radius: 2px;
+      border: 1px solid var(--border-color); color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .iit-src-x        { border-color: rgba(29,161,242,0.4);  color: #1DA1F2; }
+    .iit-src-substack { border-color: rgba(255,104,25,0.4);   color: #FF6819; }
+    .iit-src-bloomberg{ border-color: rgba(230,57,70,0.4);    color: #E63946; }
+    .iit-src-seeking  { border-color: rgba(88,166,255,0.4);   color: #58A6FF; }
+    .iit-src-internal { border-color: rgba(63,185,80,0.4);    color: #3FB950; }
+    .iit-rawdata-badge {
+      font-size: 8px; padding: 1px 5px; border-radius: 2px;
+      background: rgba(210,153,34,0.12); border: 1px solid rgba(210,153,34,0.3);
+      color: #D29922; font-family: 'JetBrains Mono', monospace;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .iit-rawdata-badge:hover { background: rgba(210,153,34,0.22); }
+    .iit-insight-headline { font-size: 11px; color: var(--text-primary); line-height: 1.4; margin-bottom: 3px; }
+    .iit-insight-summary {
+      font-size: 10px; color: var(--text-secondary); line-height: 1.45;
+      padding: 4px 8px; background: rgba(139,148,158,0.06);
+      border-left: 2px solid var(--border-color); border-radius: 0 3px 3px 0;
+    }
+    .iit-insight-summary strong { color: var(--accent-blue); font-weight: 600; }
+    /* 빈 상태 */
+    .iit-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 10px; flex: 1;
+      color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+    }
+    .iit-empty i { font-size: 28px; opacity: 0.2; }
+    .iit-empty-msg { font-size: 11px; opacity: 0.5; }
+
     /* ── MASTER SLOT GRID (3 × 3) ── */
     .slot-master-grid {
-      flex: 1;
-      display: grid;
+      flex: 1; display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr 1fr 1fr;
-      gap: 0;
-      min-height: 0;
+      gap: 0; min-height: 0;
     }
 
     /* ── LEFT COLUMN ── */
@@ -3571,78 +3817,115 @@ app.get('*', (c) => {
           <div class="db-ticker-item"><span class="db-ticker-sym">USD/KRW</span><span class="db-ticker-val neutral">1,381</span><span class="db-ticker-chg positive">▲+0.12%</span></div>
         </div>
 
-        <!-- Main Body — Full-width Slot Grid -->
+        <!-- Main Body — Issue-Insight Thread -->
         <div class="db-body">
+          <div class="iit-root" id="iit-root">
 
-          <!-- ══════════════════════════════════════
-               SLOT GRID  (3 col × 3 row = 9 slots)
-               패널 요청서가 올 때마다 조립합니다
-          ══════════════════════════════════════ -->
-          <div class="slot-master-grid" id="slot-master-grid">
+            <!-- ══ A. 좌측 패싯 내비게이션 사이드바 ══ -->
+            <aside class="iit-sidebar" id="iit-sidebar">
+              <div class="iit-sb-inner">
 
-            <div class="panel-slot" id="slot-1" onclick="onSlotClick('1')">
-              <span class="slot-id">SLOT · 01</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
+                <!-- 검색 -->
+                <div class="iit-sb-search">
+                  <i class="fas fa-search iit-sb-search-icon"></i>
+                  <input class="iit-sb-input" id="iit-search" placeholder="키워드, 티커, 원자료…" oninput="iitFilter()">
+                </div>
+
+                <!-- 필터 초기화 -->
+                <button class="iit-reset-btn" onclick="iitResetAll()">
+                  <i class="fas fa-undo"></i> 필터 초기화
+                </button>
+
+                <!-- 포트폴리오 연동 토글 -->
+                <div class="iit-pf-toggle" onclick="iitTogglePf(this)">
+                  <span class="iit-pf-label"><i class="fas fa-briefcase"></i> 포트폴리오 연동 뷰</span>
+                  <div class="iit-toggle-switch" id="iit-pf-switch"><div class="iit-toggle-knob"></div></div>
+                </div>
+
+                <!-- 패싯: 매크로 -->
+                <div class="iit-facet-group">
+                  <div class="iit-facet-title"><i class="fas fa-globe"></i> 매크로</div>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TGA" onchange="iitFilter()"><span class="iit-facet-name">TGA</span><span class="iit-facet-cnt">14</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SOFR" onchange="iitFilter()"><span class="iit-facet-name">SOFR-IORB</span><span class="iit-facet-cnt">8</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="FOMC" onchange="iitFilter()"><span class="iit-facet-name">FOMC</span><span class="iit-facet-cnt">22</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RRP" onchange="iitFilter()"><span class="iit-facet-name">RRP</span><span class="iit-facet-cnt">11</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="인플레이션" onchange="iitFilter()"><span class="iit-facet-name">인플레이션</span><span class="iit-facet-cnt">31</span></label>
+                </div>
+
+                <!-- 패싯: 섹터/테마 -->
+                <div class="iit-facet-group">
+                  <div class="iit-facet-title"><i class="fas fa-microchip"></i> 섹터/테마</div>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="AI인프라" onchange="iitFilter()"><span class="iit-facet-name">AI 인프라</span><span class="iit-facet-cnt">45</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="양자컴퓨팅" onchange="iitFilter()"><span class="iit-facet-name">양자컴퓨팅</span><span class="iit-facet-cnt">12</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Crypto" onchange="iitFilter()"><span class="iit-facet-name">Crypto</span><span class="iit-facet-cnt">30</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="에너지" onchange="iitFilter()"><span class="iit-facet-name">에너지</span><span class="iit-facet-cnt">19</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="방어주" onchange="iitFilter()"><span class="iit-facet-name">방어주</span><span class="iit-facet-cnt">9</span></label>
+                </div>
+
+                <!-- 패싯: 자산/티커 -->
+                <div class="iit-facet-group">
+                  <div class="iit-facet-title"><i class="fas fa-chart-line"></i> 자산/티커</div>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RGTI" onchange="iitFilter()"><span class="iit-facet-name">RGTI</span><span class="iit-facet-cnt">7</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="IonQ" onchange="iitFilter()"><span class="iit-facet-name">IonQ</span><span class="iit-facet-cnt">5</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="BTC" onchange="iitFilter()"><span class="iit-facet-name">BTC</span><span class="iit-facet-cnt">18</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SPX" onchange="iitFilter()"><span class="iit-facet-name">S&P 500</span><span class="iit-facet-cnt">24</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TLT" onchange="iitFilter()"><span class="iit-facet-name">TLT</span><span class="iit-facet-cnt">13</span></label>
+                </div>
+
+                <!-- 패싯: 소스 -->
+                <div class="iit-facet-group">
+                  <div class="iit-facet-title"><i class="fas fa-rss"></i> 소스</div>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="X" onchange="iitFilter()"><span class="iit-facet-name">X (Twitter)</span><span class="iit-facet-cnt">38</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Substack" onchange="iitFilter()"><span class="iit-facet-name">Substack</span><span class="iit-facet-cnt">26</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Bloomberg" onchange="iitFilter()"><span class="iit-facet-name">Bloomberg</span><span class="iit-facet-cnt">41</span></label>
+                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SeekingAlpha" onchange="iitFilter()"><span class="iit-facet-name">Seeking Alpha</span><span class="iit-facet-cnt">17</span></label>
+                </div>
+
+              </div>
+            </aside>
+            <!-- /iit-sidebar -->
+
+            <!-- ══ B. 중앙 메인 패널 (헤더 + 타임라인) ══ -->
+            <div class="iit-main" id="iit-main">
+
+              <!-- B-1. 고정 상단 컨트롤 헤더 -->
+              <div class="iit-ctrl-hdr">
+                <div class="iit-ctrl-left">
+                  <button class="iit-sidebar-toggle" id="iit-sb-toggle" onclick="iitToggleSidebar()" title="사이드바 토글">
+                    <i class="fas fa-bars"></i>
+                  </button>
+                  <span class="iit-ctrl-title">이슈-인사이트 스레드</span>
+                  <span class="iit-ctrl-sub" id="iit-result-cnt">전체 7개 이슈</span>
+                </div>
+                <div class="iit-ctrl-center">
+                  <button class="iit-preset-btn active" onclick="iitPreset(this,'all')">전체</button>
+                  <button class="iit-preset-btn" onclick="iitPreset(this,'macro')">매크로</button>
+                  <button class="iit-preset-btn" onclick="iitPreset(this,'sector')">섹터/테마</button>
+                  <button class="iit-preset-btn" onclick="iitPreset(this,'pf')">내 포트폴리오</button>
+                </div>
+                <div class="iit-ctrl-right">
+                  <span class="iit-sort-label">정렬:</span>
+                  <button class="iit-sort-btn active" onclick="iitSort(this,'time')">최신순</button>
+                  <button class="iit-sort-btn" onclick="iitSort(this,'rel')">관련도순</button>
+                </div>
+              </div>
+
+              <!-- B-2. 마스터 타임라인 -->
+              <div class="iit-timeline" id="iit-timeline">
+                <!-- JS로 렌더링 -->
+              </div>
+
             </div>
-
-            <div class="panel-slot" id="slot-2" onclick="onSlotClick('2')">
-              <span class="slot-id">SLOT · 02</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-3" onclick="onSlotClick('3')">
-              <span class="slot-id">SLOT · 03</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-4" onclick="onSlotClick('4')">
-              <span class="slot-id">SLOT · 04</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-5" onclick="onSlotClick('5')">
-              <span class="slot-id">SLOT · 05</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-6" onclick="onSlotClick('6')">
-              <span class="slot-id">SLOT · 06</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-7" onclick="onSlotClick('7')">
-              <span class="slot-id">SLOT · 07</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-8" onclick="onSlotClick('8')">
-              <span class="slot-id">SLOT · 08</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
-
-            <div class="panel-slot" id="slot-9" onclick="onSlotClick('9')">
-              <span class="slot-id">SLOT · 09</span>
-              <div class="slot-ring"><i class="fas fa-plus slot-icon"></i></div>
-              <span class="slot-label">패널 대기</span>
-            </div>
+            <!-- /iit-main -->
 
           </div>
-          <!-- /slot-master-grid -->
-
+          <!-- /iit-root -->
         </div>
         <!-- /db-body -->
       \`;
 
-      // 패널 요청서 수신 후 각 슬롯에 조립 예정
-      // requestAnimationFrame(() => { ... });
+      // IIT 위젯 초기화
+      requestAnimationFrame(() => { initIIT(); });
     }
 
     // ── ARC GAUGE ──
@@ -3943,6 +4226,332 @@ app.get('*', (c) => {
       { time:'어제', badge:'nb-sector', badgeText:'섹터', headline:'DRAM·NAND 가격 반등 MoM +8% — HBM3E 공급 병목 심화', sub:'SK하이닉스·삼성·마이크론으로 공급 집중' },
       { time:'어제', badge:'nb-macro', badgeText:'매크로', headline:'버크셔해서웨이 13F: AAPL 13% 추가 매도, 현금 $189B 신기록', sub:'CVX 신규 편입. 가치투자 기회 부재 언급' },
     ];
+
+    // ══════════════════════════════════════════════
+    // IIT — 이슈-인사이트 스레드 JS
+    // ══════════════════════════════════════════════
+
+    // ── 데이터 ──
+    const IIT_DATA = [
+      {
+        id: 'i1', date: 'TODAY', time: '10:22', urgency: 'high',
+        type: 'alert', typeLabel: 'ALERT',
+        headline: 'Fed RRP 잔고 급감 & TGA 재구축 본격화 — 단기 유동성 드레인 신호',
+        tags: ['TGA','RRP','SOFR','유동성'],
+        pfClass: 'pf-negative',
+        clusters: [
+          {
+            label: '맥락 클러스터: 유동성 축소가 고베타 자산에 미치는 영향',
+            insights: [
+              { time:'+2h',  src:'Substack',    srcClass:'iit-src-substack', rawdata:'FED 대차대조표',
+                headline:'"TGA 재구축이 촉발할 단기 자금시장 경색 시나리오"',
+                summary:'단기 자금 시장 경색 우려. <strong>SOFR 금리 발작 가능성</strong> 내포. 잉여 준비금 감소 속도 예상치 상회.' },
+              { time:'+5h',  src:'X/매크로계정', srcClass:'iit-src-x', rawdata:'RRP 잔고 일별 데이터',
+                headline:'"RRP 고갈 시점과 증시 조정 상관도 — 과거 3회 비교"',
+                summary:'과거 사례 비교 차트 첨부. <strong>잉여 유동성 한계점</strong> 도달 임박. 2019년 레포 사태와 구조적 유사.' },
+              { time:'+12h', src:'Seeking Alpha', srcClass:'iit-src-seeking', rawdata:'',
+                headline:'"유동성 드레인 시기의 헷징 전략 — 방어적 옵션 롤오버"',
+                summary:'고베타(양자, AI) 포지션 축소 권고. <strong>방어적 옵션 롤오버</strong> 전략 제시. SPX 풋 스프레드 비용 분석 포함.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i2', date: 'TODAY', time: '08:47', urgency: 'high',
+        type: 'issue', typeLabel: 'ISSUE',
+        headline: 'FOMC 회의록 — "더 높은 기간 프리미엄 용인" 발언 재확인, 장기금리 상방 압력',
+        tags: ['FOMC','TLT','금리','인플레이션'],
+        pfClass: 'pf-negative',
+        clusters: [
+          {
+            label: '맥락 클러스터: 기간 프리미엄 확대가 채권/주식에 미치는 영향',
+            insights: [
+              { time:'+1h',  src:'Bloomberg',   srcClass:'iit-src-bloomberg', rawdata:'FOMC Minutes PDF',
+                headline:'"회의록 전문 분석 — 매파 기조 지속 5개 핵심 문장"',
+                summary:'고용 시장 탄력성 재확인. <strong>인플레이션 목표 달성 자신감 하락</strong>. 연내 2회 인하 컨센서스 흔들림.' },
+              { time:'+3h',  src:'Substack',    srcClass:'iit-src-substack', rawdata:'ACM 기간프리미엄 지수',
+                headline:'"ACM 기간 프리미엄 +48bp 돌파 — TLT 추가 하락 여지"',
+                summary:'ACM 모델 기준 <strong>10년물 적정금리 4.8%~5.1%</strong> 밴드 진입. TLT 포지션 비중 축소 권고.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i3', date: 'TODAY', time: '07:15', urgency: 'medium',
+        type: 'insight', typeLabel: 'INSIGHT',
+        headline: 'AI 인프라 섹터 랠리 — NVDA 옵션 내재변동성 급등, 고베타 양자컴퓨팅 동반 과열',
+        tags: ['AI인프라','양자컴퓨팅','RGTI','IonQ'],
+        pfClass: 'pf-positive',
+        clusters: [
+          {
+            label: '맥락 클러스터: AI 인프라 수요 구조 vs. 밸류에이션 리스크',
+            insights: [
+              { time:'+2h',  src:'X/반도체계정', srcClass:'iit-src-x', rawdata:'NVDA 옵션체인',
+                headline:'"NVDA IV Rank 89% — 단기 평균회귀 가능성"',
+                summary:'IV Rank 과거 80% 초과 시점 이후 <strong>2주 내 조정 확률 68%</strong>. 콜 스프레드 매도 전략 유효.' },
+              { time:'+6h',  src:'Seeking Alpha', srcClass:'iit-src-seeking', rawdata:'',
+                headline:'"양자컴퓨팅 ETF — 기초자산 대비 300% 프리미엄 구조 경고"',
+                summary:'RGTI, IonQ 등 소형 양자주 <strong>실적 기반 없는 내러티브 드리븐 랠리</strong>. 테마 ETF 유입 자금 분석 첨부.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i4', date: 'YESTERDAY', time: '18:30', urgency: 'medium',
+        type: 'issue', typeLabel: 'ISSUE',
+        headline: 'OPEC+ 자발적 감산 9월 연장 합의 — WTI $80~$85 박스권 지지, 에너지 섹터 상방 리스크',
+        tags: ['에너지','WTI','OPEC','인플레이션'],
+        pfClass: 'pf-neutral',
+        clusters: [
+          {
+            label: '맥락 클러스터: 유가 안정이 인플레이션·연준 경로에 미치는 영향',
+            insights: [
+              { time:'+4h',  src:'Bloomberg', srcClass:'iit-src-bloomberg', rawdata:'EIA 주간 재고 데이터',
+                headline:'"감산 연장 — 에너지 섹터 XLE 추가 매수 vs. 헷지 판단"',
+                summary:'에너지 섹터 <strong>FCF 수익률 8.2%</strong>로 밸류에이션 매력. 단, 달러 강세 구간에서 상승 제한적.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i5', date: 'YESTERDAY', time: '14:10', urgency: 'low',
+        type: 'insight', typeLabel: 'INSIGHT',
+        headline: '버크셔해서웨이 13F — AAPL 추가 13% 매도, 현금 $189B 신기록 / CVX 신규 편입',
+        tags: ['SPX','BTC','방어주','Substack'],
+        pfClass: 'pf-neutral',
+        clusters: [
+          {
+            label: '맥락 클러스터: 버핏 현금 축적의 시장 해석',
+            insights: [
+              { time:'+1h',  src:'X/가치투자', srcClass:'iit-src-x', rawdata:'버크셔 13F SEC 공시',
+                headline:'"현금 $189B — 1987년 이후 최고치, 기회 부재인가 리스크 관리인가"',
+                summary:'역사적으로 버핏 현금 비중 <strong>20% 초과 시 이후 12개월 수익률 평균 +18.4%</strong>. 저가 매수 기회 탐색 국면.' },
+              { time:'+5h',  src:'Substack', srcClass:'iit-src-substack', rawdata:'',
+                headline:'"CVX 편입 의미 — 에너지 섹터 재평가 vs. 인플레이션 헷지"',
+                summary:'CVX 편입은 <strong>실물 자산 헷지 포지션</strong> 강화 신호. 장기 인플레이션 구조 변화에 대한 버핏식 배팅 해석.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i6', date: '2일 전', time: '11:05', urgency: 'low',
+        type: 'issue', typeLabel: 'ISSUE',
+        headline: 'DRAM·NAND 가격 반등 MoM +8% — HBM3E 공급 병목 심화, SK하이닉스·삼성 집중',
+        tags: ['AI인프라','반도체','SPX'],
+        pfClass: 'pf-positive',
+        clusters: [
+          {
+            label: '맥락 클러스터: HBM 공급망 병목과 수혜 기업',
+            insights: [
+              { time:'+3h',  src:'Bloomberg', srcClass:'iit-src-bloomberg', rawdata:'DRAMeXchange 가격 데이터',
+                headline:'"HBM3E 12단 수율 문제 — NVDA GB200 납기 지연 가능성"',
+                summary:'SK하이닉스 <strong>HBM3E 단독 공급자 지위</strong> 유지. 삼성 수율 개선 2025 Q1 이전 어려울 전망.' },
+            ]
+          }
+        ]
+      },
+      {
+        id: 'i7', date: '2일 전', time: '09:30', urgency: 'medium',
+        type: 'alert', typeLabel: 'ALERT',
+        headline: 'BTC 현물 ETF 일일 순유입 $892M 신기록 — 기관 수요 급증, 온체인 공급 압박',
+        tags: ['BTC','Crypto','기관투자자'],
+        pfClass: 'pf-positive',
+        clusters: [
+          {
+            label: '맥락 클러스터: BTC ETF 수요 vs. 마이너 공급 동학',
+            insights: [
+              { time:'+2h',  src:'X/크립토', srcClass:'iit-src-x', rawdata:'ETF 플로우 데이터',
+                headline:'"IBIT 단독 $612M 유입 — 골드 ETF GLD 대체 수요 가속화"',
+                summary:'기관 포트폴리오 내 <strong>금 대체 자산으로서 BTC</strong> 수요 구조적 증가. 60/40 포트에 1~3% 편입 사례 급증.' },
+              { time:'+8h',  src:'Substack', srcClass:'iit-src-substack', rawdata:'온체인 UTXO 데이터',
+                headline:'"반감기 후 마이너 매도 압력 — 단기 조정 시 $58K 지지선 테스트"',
+                summary:'반감기 후 <strong>마이너 수익성 BEP $52K~$56K</strong>. 현물 ETF 수요가 매도 흡수 여부가 관건.' },
+            ]
+          }
+        ]
+      },
+    ];
+
+    // ── 상태 ──
+    let iitPfMode = false;
+    let iitSearchKw = '';
+    let iitActiveTags = new Set();
+    let iitPresetMode = 'all';
+    let iitSortMode = 'time';
+    let iitOpenIds = new Set();
+
+    // ── 초기화 ──
+    function initIIT() {
+      iitRender();
+    }
+
+    // ── 필터링 ──
+    function iitGetFiltered() {
+      let items = IIT_DATA;
+      // 프리셋
+      if (iitPresetMode === 'macro')  items = items.filter(d => d.tags.some(t => ['TGA','RRP','SOFR','FOMC','인플레이션','금리'].includes(t)));
+      if (iitPresetMode === 'sector') items = items.filter(d => d.tags.some(t => ['AI인프라','양자컴퓨팅','에너지','반도체','방어주'].includes(t)));
+      if (iitPresetMode === 'pf')     items = items.filter(d => d.pfClass !== 'pf-neutral');
+      // 체크박스 태그
+      if (iitActiveTags.size > 0) {
+        items = items.filter(d => [...iitActiveTags].every(t => d.tags.includes(t)));
+      }
+      // 검색어
+      if (iitSearchKw) {
+        const kw = iitSearchKw.toLowerCase();
+        items = items.filter(d =>
+          d.headline.toLowerCase().includes(kw) ||
+          d.tags.some(t => t.toLowerCase().includes(kw))
+        );
+      }
+      return items;
+    }
+
+    // ── 렌더 ──
+    function iitRender() {
+      const tl = document.getElementById('iit-timeline');
+      if (!tl) return;
+      const items = iitGetFiltered();
+      document.getElementById('iit-result-cnt').textContent = \`전체 \${items.length}개 이슈\`;
+      if (!items.length) {
+        tl.innerHTML = \`<div class="iit-empty"><i class="fas fa-filter"></i><span class="iit-empty-msg">조건에 맞는 이슈가 없습니다</span></div>\`;
+        return;
+      }
+      // 날짜 그룹핑
+      const groups = {};
+      items.forEach(d => { (groups[d.date] = groups[d.date] || []).push(d); });
+      tl.innerHTML = Object.entries(groups).map(([date, list]) => \`
+        <div class="iit-date-divider">
+          <div class="iit-date-line"></div>
+          <div class="iit-date-label">\${date}</div>
+          <div class="iit-date-line"></div>
+        </div>
+        \${list.map(d => iitRenderIssue(d)).join('')}
+      \`).join('');
+    }
+
+    function iitRenderIssue(d) {
+      const pfStyle = iitPfMode ? d.pfClass : '';
+      const isOpen = iitOpenIds.has(d.id);
+      const totalInsights = d.clusters.reduce((s,c) => s + c.insights.length, 0);
+      return \`
+        <div class="iit-issue \${pfStyle}" id="issue-\${d.id}">
+          <div class="iit-issue-hdr" onclick="iitToggleThread('\${d.id}')">
+            <div class="iit-issue-meta">
+              <div class="iit-urgency \${d.urgency}"></div>
+              <span class="iit-issue-time">\${d.time}</span>
+              <span class="iit-issue-type iit-type-\${d.type}">\${d.typeLabel}</span>
+            </div>
+            <div class="iit-issue-headline">\${d.headline}</div>
+            <div class="iit-tag-row">\${d.tags.map(t => \`<span class="iit-tag \${iitActiveTags.has(t)?'active':''}" onclick="iitTagClick(event,'\${t}')">#\${t}</span>\`).join('')}</div>
+          </div>
+          <div class="iit-expand-row" onclick="iitToggleThread('\${d.id}')">
+            <button class="iit-expand-btn \${isOpen?'open':''}" id="expbtn-\${d.id}">
+              <i class="fas fa-layer-group"></i>
+              \${totalInsights}개의 맥락 분석 보기
+              <span class="iit-expand-arrow">▾</span>
+            </button>
+          </div>
+          <div class="iit-thread \${isOpen?'open':''}" id="thread-\${d.id}">
+            \${d.clusters.map(c => iitRenderCluster(c)).join('')}
+          </div>
+        </div>
+      \`;
+    }
+
+    function iitRenderCluster(c) {
+      return \`
+        <div class="iit-cluster">
+          <div class="iit-cluster-hdr"><i class="fas fa-project-diagram"></i>\${c.label}</div>
+          \${c.insights.map(ins => iitRenderInsight(ins)).join('')}
+        </div>
+      \`;
+    }
+
+    function iitRenderInsight(ins) {
+      const rawBadge = ins.rawdata
+        ? \`<span class="iit-rawdata-badge" title="원자료 확인"><i class="fas fa-database"></i> \${ins.rawdata}</span>\`
+        : '';
+      return \`
+        <div class="iit-insight-item">
+          <div class="iit-tree-line"><div class="iit-tree-dot"></div><div class="iit-tree-stem"></div></div>
+          <div class="iit-insight-body">
+            <div class="iit-insight-meta">
+              <span class="iit-insight-time">\${ins.time}</span>
+              <span class="iit-insight-src \${ins.srcClass}">\${ins.src}</span>
+              \${rawBadge}
+            </div>
+            <div class="iit-insight-headline">\${ins.headline}</div>
+            <div class="iit-insight-summary">💡 \${ins.summary}</div>
+          </div>
+        </div>
+      \`;
+    }
+
+    // ── 인터랙션 ──
+    function iitToggleThread(id) {
+      if (iitOpenIds.has(id)) iitOpenIds.delete(id);
+      else iitOpenIds.add(id);
+      iitRender();
+      // 스크롤 유지
+      requestAnimationFrame(() => {
+        const el = document.getElementById('issue-' + id);
+        if (el) el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      });
+    }
+
+    function iitToggleSidebar() {
+      const sb = document.getElementById('iit-sidebar');
+      if (sb) sb.classList.toggle('collapsed');
+    }
+
+    function iitTogglePf(el) {
+      iitPfMode = !iitPfMode;
+      const sw = document.getElementById('iit-pf-switch');
+      if (sw) sw.classList.toggle('on', iitPfMode);
+      iitRender();
+    }
+
+    function iitFilter() {
+      iitSearchKw = document.getElementById('iit-search')?.value || '';
+      iitActiveTags = new Set(
+        [...document.querySelectorAll('.iit-cb:checked')].map(cb => cb.dataset.tag)
+      );
+      iitRender();
+    }
+
+    function iitResetAll() {
+      document.querySelectorAll('.iit-cb').forEach(cb => cb.checked = false);
+      const inp = document.getElementById('iit-search');
+      if (inp) inp.value = '';
+      iitSearchKw = '';
+      iitActiveTags = new Set();
+      iitPresetMode = 'all';
+      document.querySelectorAll('.iit-preset-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+      iitRender();
+    }
+
+    function iitTagClick(e, tag) {
+      e.stopPropagation();
+      if (iitActiveTags.has(tag)) iitActiveTags.delete(tag);
+      else iitActiveTags.add(tag);
+      // 체크박스 동기화
+      document.querySelectorAll(\`.iit-cb[data-tag="\${tag}"]\`).forEach(cb => cb.checked = iitActiveTags.has(tag));
+      iitRender();
+    }
+
+    function iitPreset(btn, mode) {
+      iitPresetMode = mode;
+      document.querySelectorAll('.iit-preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      iitRender();
+    }
+
+    function iitSort(btn, mode) {
+      iitSortMode = mode;
+      document.querySelectorAll('.iit-sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
 
     // ── PANEL SLOT SYSTEM ──
     function onSlotClick(slotId) {
