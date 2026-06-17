@@ -20,6 +20,7 @@ app.get('*', (c) => {
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   <style>
     /* ===== CSS RESET & ROOT VARIABLES ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -914,23 +915,48 @@ app.get('*', (c) => {
     .mc-icon-btn:hover { border-color: var(--border-color); color: var(--text-primary); }
     .mc-icon-btn.active { background: rgba(88,166,255,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
 
-    /* 프리셋 버튼 */
-    .mc-preset-label {
-      font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
-      color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
-      flex-shrink: 0;
+    /* 프리셋 드롭다운 */
+    .mc-preset-wrap {
+      position: relative; display: flex; align-items: center;
     }
-    .mc-preset-btn {
+    .mc-preset-trigger {
       background: var(--bg-card); border: 1px solid var(--border-color);
       border-radius: 4px; color: var(--text-muted); font-size: 10px;
       font-family: 'JetBrains Mono', monospace;
       padding: 4px 10px; cursor: pointer; transition: all 0.15s;
-      white-space: nowrap; letter-spacing: 0.02em;
-      display: flex; align-items: center; gap: 5px;
+      white-space: nowrap; letter-spacing: 0.06em; font-weight: 700;
+      display: flex; align-items: center; gap: 6px; height: 26px;
     }
-    .mc-preset-btn i { font-size: 9px; }
-    .mc-preset-btn:hover { border-color: rgba(88,166,255,0.4); color: var(--text-primary); background: rgba(88,166,255,0.06); }
-    .mc-preset-btn.active { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(88,166,255,0.12); }
+    .mc-preset-trigger:hover { border-color: rgba(88,166,255,0.4); color: var(--text-primary); background: rgba(88,166,255,0.06); }
+    .mc-preset-trigger.active { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(88,166,255,0.12); }
+    .mc-preset-trigger .mc-preset-caret { font-size: 8px; transition: transform 0.18s; }
+    .mc-preset-trigger.open .mc-preset-caret { transform: rotate(180deg); }
+    .mc-preset-active-name {
+      font-size: 9px; color: var(--text-muted); letter-spacing: 0.03em;
+      max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mc-preset-dropdown {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 900;
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 4px 0;
+      min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .mc-preset-dropdown.open { display: block; }
+    .mc-preset-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 12px; cursor: pointer; transition: background 0.12s;
+      font-size: 10px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary); white-space: nowrap;
+    }
+    .mc-preset-item i { font-size: 9px; width: 12px; text-align: center; color: var(--text-muted); }
+    .mc-preset-item:hover { background: rgba(88,166,255,0.07); color: var(--text-primary); }
+    .mc-preset-item.active { color: var(--accent-blue); background: rgba(88,166,255,0.08); }
+    .mc-preset-item.active i { color: var(--accent-blue); }
+    .mc-preset-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+    /* 기존 호환 (JS에서 .mc-preset-btn 쿼리 사용) */
+    .mc-preset-btn { display: none; }
 
     /* 라이브 인디케이터 */
     .mc-live-dot {
@@ -1057,18 +1083,18 @@ app.get('*', (c) => {
 
     /* 서브 패널 그룹 */
     .mc-sub-panels {
-      display: flex; gap: 0;
+      display: flex; flex-direction: column; gap: 0;
       border-top: 1px solid var(--border-color);
-      height: 130px; flex-shrink: 0;
+      height: 200px; flex-shrink: 0;
       transition: height 0.22s ease, opacity 0.22s ease;
     }
     .mc-sub-panels.hidden { height: 0; opacity: 0; overflow: hidden; }
     .mc-sub-panel {
       flex: 1; display: flex; flex-direction: column;
-      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
       overflow: hidden;
     }
-    .mc-sub-panel:last-child { border-right: none; }
+    .mc-sub-panel:last-child { border-bottom: none; }
     .mc-sub-panel-label {
       font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
       color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
@@ -1120,8 +1146,120 @@ app.get('*', (c) => {
       flex: 1;
       overflow: hidden;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       min-height: 0;
+    }
+
+    /* IIT 패널 (좌측 60%) */
+    .db-iit-panel {
+      flex: 0 0 60%;
+      min-width: 0;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Radar 패널 (우측 40%) */
+    .db-radar-panel {
+      flex: 0 0 40%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+
+    /* ══════════════════════════════════════════════
+       MPR — 매크로 국면 나침반 (Macro Phase Radar)
+    ══════════════════════════════════════════════ */
+    .mpr-root {
+      flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+    }
+    .mpr-header {
+      height: 38px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+    .mpr-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .mpr-title-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #58A6FF;
+      box-shadow: 0 0 6px #58A6FF, 0 0 12px rgba(88,166,255,0.4);
+    }
+    .mpr-meta {
+      font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); letter-spacing: 0.04em;
+    }
+    .mpr-body {
+      flex: 1; display: flex; flex-direction: column; min-height: 0; position: relative;
+    }
+    .mpr-chart-wrap {
+      flex: 1; min-height: 0; position: relative;
+    }
+    #mpr-chart {
+      width: 100%; height: 100%;
+    }
+    /* 툴팁 */
+    .mpr-tooltip {
+      position: fixed; z-index: 9999;
+      background: rgba(18,22,31,0.97);
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 8px; padding: 12px 14px;
+      min-width: 220px; max-width: 280px;
+      pointer-events: none; display: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .mpr-tooltip.visible { display: block; }
+    .mpr-tt-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+      color: #58A6FF; font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 10px; text-transform: uppercase;
+    }
+    .mpr-tt-item {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .mpr-tt-label {
+      font-size: 9px; color: var(--text-secondary);
+      font-family: 'Inter', sans-serif; flex: 0 0 auto; width: 110px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mpr-tt-bar-wrap {
+      flex: 1; height: 4px; background: rgba(255,255,255,0.06);
+      border-radius: 2px; overflow: hidden;
+    }
+    .mpr-tt-bar {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, rgba(88,166,255,0.5), #58A6FF);
+      transition: width 0.3s;
+    }
+    .mpr-tt-pct {
+      font-size: 9px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary); flex-shrink: 0; width: 30px; text-align: right;
+    }
+    /* 하단 범례 스트립 */
+    .mpr-legend-strip {
+      flex-shrink: 0; height: 32px;
+      display: flex; align-items: center; gap: 0;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      padding: 0 10px; overflow: hidden;
+    }
+    .mpr-legend-item {
+      display: flex; align-items: center; gap: 4px;
+      padding: 0 8px; font-size: 8.5px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); white-space: nowrap; flex-shrink: 0;
+    }
+    .mpr-legend-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
     }
 
     /* ══════════════════════════════════════════════
@@ -3494,41 +3632,13 @@ app.get('*', (c) => {
         </div>
         <!-- /page-issue -->
 
-        <div class="page-view fade-in" id="page-research">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-network-wired"></i></div>
-            <div class="placeholder-title">리서치 클러스터</div>
-            <div class="placeholder-desc">토픽 클러스터링 및 키워드 지식 그래프 시각화. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">MOD_RESEARCH · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-research"></div>
 
-        <div class="page-view fade-in" id="page-calendar">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-calendar-alt"></i></div>
-            <div class="placeholder-title">매크로 캘린더</div>
-            <div class="placeholder-desc">FOMC·CPI·NFP 등 글로벌 경제지표 이벤트 타임라인. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">MOD_CALENDAR · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-calendar"></div>
 
-        <div class="page-view fade-in" id="page-regime">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-radar"></i></div>
-            <div class="placeholder-title">국면 모니터</div>
-            <div class="placeholder-desc">경기 사이클 레이더 차트 및 국면 전환 신호 감지. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">MOD_REGIME · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-regime"></div>
 
-        <div class="page-view fade-in" id="page-screener">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-filter"></i></div>
-            <div class="placeholder-title">자산 스크리너</div>
-            <div class="placeholder-desc">멀티팩터 자산 필터링 및 퀀트 스크리닝 엔진. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">MOD_SCREENER · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-screener"></div>
 
         <!-- ════════════════════════════════════════════
              PAGE: 매크로 차트 (Macro Chart)
@@ -3559,24 +3669,34 @@ app.get('*', (c) => {
                 </div>
               </div>
 
-              <!-- A-2. 중앙: 나의 경제지표 프리셋 -->
+              <!-- A-2. 중앙: 프리셋 드롭다운 -->
               <div class="mc-top-center">
-                <span class="mc-preset-label">PRESET</span>
-                <button class="mc-preset-btn active" onclick="mcApplyPreset(this,'fed_liq')" data-preset="fed_liq">
-                  <i class="fas fa-water"></i> 연준 순유동성
-                </button>
-                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'risk_on')" data-preset="risk_on">
-                  <i class="fas fa-rocket"></i> 고베타 위험자산
-                </button>
-                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'rates')" data-preset="rates">
-                  <i class="fas fa-percentage"></i> 금리 커브
-                </button>
-                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'macro_trio')" data-preset="macro_trio">
-                  <i class="fas fa-globe"></i> 매크로 3대 지표
-                </button>
-                <button class="mc-preset-btn" onclick="mcApplyPreset(this,'custom1')" data-preset="custom1">
-                  <i class="fas fa-star"></i> 나의 즐겨찾기
-                </button>
+                <div class="mc-preset-wrap" id="mc-preset-wrap">
+                  <button class="mc-preset-trigger active" id="mc-preset-trigger" onclick="mcTogglePresetDropdown(event)">
+                    <i class="fas fa-bookmark" style="font-size:9px;"></i>
+                    PRESET
+                    <span class="mc-preset-active-name" id="mc-preset-active-name">연준 순유동성</span>
+                    <i class="fas fa-chevron-down mc-preset-caret"></i>
+                  </button>
+                  <div class="mc-preset-dropdown" id="mc-preset-dropdown">
+                    <div class="mc-preset-item active" data-preset="fed_liq" onclick="mcApplyPresetDrop(this,'fed_liq')">
+                      <i class="fas fa-water"></i> 연준 순유동성
+                    </div>
+                    <div class="mc-preset-item" data-preset="risk_on" onclick="mcApplyPresetDrop(this,'risk_on')">
+                      <i class="fas fa-rocket"></i> 고베타 위험자산
+                    </div>
+                    <div class="mc-preset-item" data-preset="rates" onclick="mcApplyPresetDrop(this,'rates')">
+                      <i class="fas fa-percentage"></i> 금리 커브
+                    </div>
+                    <div class="mc-preset-item" data-preset="macro_trio" onclick="mcApplyPresetDrop(this,'macro_trio')">
+                      <i class="fas fa-globe"></i> 매크로 3대 지표
+                    </div>
+                    <div class="mc-preset-divider"></div>
+                    <div class="mc-preset-item" data-preset="custom1" onclick="mcApplyPresetDrop(this,'custom1')">
+                      <i class="fas fa-star"></i> 나의 즐겨찾기
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- A-3. 우측: 전역 도구 -->
@@ -3700,41 +3820,13 @@ app.get('*', (c) => {
         </div>
         <!-- /page-chart -->
 
-        <div class="page-view fade-in" id="page-docs">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-file-alt"></i></div>
-            <div class="placeholder-title">문서 목록</div>
-            <div class="placeholder-desc">수집된 리포트·문서 아카이브 관리 페이지. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">ADMIN_DOCS · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-docs"></div>
 
-        <div class="page-view fade-in" id="page-sources">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-database"></i></div>
-            <div class="placeholder-title">수집원 관리</div>
-            <div class="placeholder-desc">데이터 수집원 등록·설정 및 헬스 모니터링 패널. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">ADMIN_SOURCES · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-sources"></div>
 
-        <div class="page-view fade-in" id="page-calibration">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-sliders-h"></i></div>
-            <div class="placeholder-title">데이터 보정</div>
-            <div class="placeholder-desc">수집 데이터 이상치 보정 및 정규화 파이프라인. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">ADMIN_CALIBRATION · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-calibration"></div>
 
-        <div class="page-view fade-in" id="page-logs">
-          <div class="placeholder-page">
-            <div class="placeholder-icon"><i class="fas fa-terminal"></i></div>
-            <div class="placeholder-title">수집 로그</div>
-            <div class="placeholder-desc">수집 파이프라인 실행 로그 및 에러 트래킹 콘솔. 후속 사양서에 따라 구현 예정.</div>
-            <div class="placeholder-badge">ADMIN_LOGS · SCHEDULED</div>
-          </div>
-        </div>
+        <div class="page-view fade-in" id="page-logs"></div>
 
       </main>
     </div>
@@ -4221,115 +4313,542 @@ app.get('*', (c) => {
           <div class="db-ticker-item"><span class="db-ticker-sym">USD/KRW</span><span class="db-ticker-val neutral">1,381</span><span class="db-ticker-chg positive">▲+0.12%</span></div>
         </div>
 
-        <!-- Main Body — Issue-Insight Thread -->
+        <!-- Main Body — 2패널: IIT(좌) + Radar(우) -->
         <div class="db-body">
-          <div class="iit-root" id="iit-root">
 
-            <!-- ══ A. 좌측 패싯 내비게이션 사이드바 ══ -->
-            <aside class="iit-sidebar" id="iit-sidebar">
-              <div class="iit-sb-inner">
+          <!-- ═══ 좌측 60%: 이슈-인사이트 스레드 ═══ -->
+          <div class="db-iit-panel">
+            <div class="iit-root" id="iit-root">
 
-                <!-- 검색 -->
-                <div class="iit-sb-search">
-                  <i class="fas fa-search iit-sb-search-icon"></i>
-                  <input class="iit-sb-input" id="iit-search" placeholder="키워드, 티커, 원자료…" oninput="iitFilter()">
-                </div>
+              <!-- ══ A. 좌측 패싯 내비게이션 사이드바 ══ -->
+              <aside class="iit-sidebar" id="iit-sidebar">
+                <div class="iit-sb-inner">
 
-                <!-- 필터 초기화 -->
-                <button class="iit-reset-btn" onclick="iitResetAll()">
-                  <i class="fas fa-undo"></i> 필터 초기화
-                </button>
+                  <!-- 검색 -->
+                  <div class="iit-sb-search">
+                    <i class="fas fa-search iit-sb-search-icon"></i>
+                    <input class="iit-sb-input" id="iit-search" placeholder="키워드, 티커, 원자료…" oninput="iitFilter()">
+                  </div>
 
-                <!-- 포트폴리오 연동 토글 -->
-                <div class="iit-pf-toggle" onclick="iitTogglePf(this)">
-                  <span class="iit-pf-label"><i class="fas fa-briefcase"></i> 포트폴리오 연동 뷰</span>
-                  <div class="iit-toggle-switch" id="iit-pf-switch"><div class="iit-toggle-knob"></div></div>
-                </div>
-
-                <!-- 패싯: 매크로 -->
-                <div class="iit-facet-group">
-                  <div class="iit-facet-title"><i class="fas fa-globe"></i> 매크로</div>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TGA" onchange="iitFilter()"><span class="iit-facet-name">TGA</span><span class="iit-facet-cnt">14</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SOFR" onchange="iitFilter()"><span class="iit-facet-name">SOFR-IORB</span><span class="iit-facet-cnt">8</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="FOMC" onchange="iitFilter()"><span class="iit-facet-name">FOMC</span><span class="iit-facet-cnt">22</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RRP" onchange="iitFilter()"><span class="iit-facet-name">RRP</span><span class="iit-facet-cnt">11</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="인플레이션" onchange="iitFilter()"><span class="iit-facet-name">인플레이션</span><span class="iit-facet-cnt">31</span></label>
-                </div>
-
-                <!-- 패싯: 섹터/테마 -->
-                <div class="iit-facet-group">
-                  <div class="iit-facet-title"><i class="fas fa-microchip"></i> 섹터/테마</div>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="AI인프라" onchange="iitFilter()"><span class="iit-facet-name">AI 인프라</span><span class="iit-facet-cnt">45</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="양자컴퓨팅" onchange="iitFilter()"><span class="iit-facet-name">양자컴퓨팅</span><span class="iit-facet-cnt">12</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Crypto" onchange="iitFilter()"><span class="iit-facet-name">Crypto</span><span class="iit-facet-cnt">30</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="에너지" onchange="iitFilter()"><span class="iit-facet-name">에너지</span><span class="iit-facet-cnt">19</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="방어주" onchange="iitFilter()"><span class="iit-facet-name">방어주</span><span class="iit-facet-cnt">9</span></label>
-                </div>
-
-                <!-- 패싯: 자산/티커 -->
-                <div class="iit-facet-group">
-                  <div class="iit-facet-title"><i class="fas fa-chart-line"></i> 자산/티커</div>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RGTI" onchange="iitFilter()"><span class="iit-facet-name">RGTI</span><span class="iit-facet-cnt">7</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="IonQ" onchange="iitFilter()"><span class="iit-facet-name">IonQ</span><span class="iit-facet-cnt">5</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="BTC" onchange="iitFilter()"><span class="iit-facet-name">BTC</span><span class="iit-facet-cnt">18</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SPX" onchange="iitFilter()"><span class="iit-facet-name">S&P 500</span><span class="iit-facet-cnt">24</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TLT" onchange="iitFilter()"><span class="iit-facet-name">TLT</span><span class="iit-facet-cnt">13</span></label>
-                </div>
-
-                <!-- 패싯: 소스 -->
-                <div class="iit-facet-group">
-                  <div class="iit-facet-title"><i class="fas fa-rss"></i> 소스</div>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="X" onchange="iitFilter()"><span class="iit-facet-name">X (Twitter)</span><span class="iit-facet-cnt">38</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Substack" onchange="iitFilter()"><span class="iit-facet-name">Substack</span><span class="iit-facet-cnt">26</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Bloomberg" onchange="iitFilter()"><span class="iit-facet-name">Bloomberg</span><span class="iit-facet-cnt">41</span></label>
-                  <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SeekingAlpha" onchange="iitFilter()"><span class="iit-facet-name">Seeking Alpha</span><span class="iit-facet-cnt">17</span></label>
-                </div>
-
-              </div>
-            </aside>
-            <!-- /iit-sidebar -->
-
-            <!-- ══ B. 중앙 메인 패널 (헤더 + 타임라인) ══ -->
-            <div class="iit-main" id="iit-main">
-
-              <!-- B-1. 고정 상단 컨트롤 헤더 -->
-              <div class="iit-ctrl-hdr">
-                <div class="iit-ctrl-left">
-                  <button class="iit-sidebar-toggle" id="iit-sb-toggle" onclick="iitToggleSidebar()" title="사이드바 토글">
-                    <i class="fas fa-bars"></i>
+                  <!-- 필터 초기화 -->
+                  <button class="iit-reset-btn" onclick="iitResetAll()">
+                    <i class="fas fa-undo"></i> 필터 초기화
                   </button>
-                  <span class="iit-ctrl-title">이슈-인사이트 스레드</span>
-                  <span class="iit-ctrl-sub" id="iit-result-cnt">전체 7개 이슈</span>
-                </div>
-                <div class="iit-ctrl-center">
-                  <button class="iit-preset-btn active" onclick="iitPreset(this,'all')">전체</button>
-                  <button class="iit-preset-btn" onclick="iitPreset(this,'macro')">매크로</button>
-                  <button class="iit-preset-btn" onclick="iitPreset(this,'sector')">섹터/테마</button>
-                  <button class="iit-preset-btn" onclick="iitPreset(this,'pf')">내 포트폴리오</button>
-                </div>
-                <div class="iit-ctrl-right">
-                  <span class="iit-sort-label">정렬:</span>
-                  <button class="iit-sort-btn active" onclick="iitSort(this,'time')">최신순</button>
-                  <button class="iit-sort-btn" onclick="iitSort(this,'rel')">관련도순</button>
-                </div>
-              </div>
 
-              <!-- B-2. 마스터 타임라인 -->
-              <div class="iit-timeline" id="iit-timeline">
-                <!-- JS로 렌더링 -->
+                  <!-- 포트폴리오 연동 토글 -->
+                  <div class="iit-pf-toggle" onclick="iitTogglePf(this)">
+                    <span class="iit-pf-label"><i class="fas fa-briefcase"></i> 포트폴리오 연동 뷰</span>
+                    <div class="iit-toggle-switch" id="iit-pf-switch"><div class="iit-toggle-knob"></div></div>
+                  </div>
+
+                  <!-- 패싯: 매크로 -->
+                  <div class="iit-facet-group">
+                    <div class="iit-facet-title"><i class="fas fa-globe"></i> 매크로</div>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TGA" onchange="iitFilter()"><span class="iit-facet-name">TGA</span><span class="iit-facet-cnt">14</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SOFR" onchange="iitFilter()"><span class="iit-facet-name">SOFR-IORB</span><span class="iit-facet-cnt">8</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="FOMC" onchange="iitFilter()"><span class="iit-facet-name">FOMC</span><span class="iit-facet-cnt">22</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RRP" onchange="iitFilter()"><span class="iit-facet-name">RRP</span><span class="iit-facet-cnt">11</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="인플레이션" onchange="iitFilter()"><span class="iit-facet-name">인플레이션</span><span class="iit-facet-cnt">31</span></label>
+                  </div>
+
+                  <!-- 패싯: 섹터/테마 -->
+                  <div class="iit-facet-group">
+                    <div class="iit-facet-title"><i class="fas fa-microchip"></i> 섹터/테마</div>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="AI인프라" onchange="iitFilter()"><span class="iit-facet-name">AI 인프라</span><span class="iit-facet-cnt">45</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="양자컴퓨팅" onchange="iitFilter()"><span class="iit-facet-name">양자컴퓨팅</span><span class="iit-facet-cnt">12</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Crypto" onchange="iitFilter()"><span class="iit-facet-name">Crypto</span><span class="iit-facet-cnt">30</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="에너지" onchange="iitFilter()"><span class="iit-facet-name">에너지</span><span class="iit-facet-cnt">19</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="방어주" onchange="iitFilter()"><span class="iit-facet-name">방어주</span><span class="iit-facet-cnt">9</span></label>
+                  </div>
+
+                  <!-- 패싯: 자산/티커 -->
+                  <div class="iit-facet-group">
+                    <div class="iit-facet-title"><i class="fas fa-chart-line"></i> 자산/티커</div>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="RGTI" onchange="iitFilter()"><span class="iit-facet-name">RGTI</span><span class="iit-facet-cnt">7</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="IonQ" onchange="iitFilter()"><span class="iit-facet-name">IonQ</span><span class="iit-facet-cnt">5</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="BTC" onchange="iitFilter()"><span class="iit-facet-name">BTC</span><span class="iit-facet-cnt">18</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SPX" onchange="iitFilter()"><span class="iit-facet-name">S&P 500</span><span class="iit-facet-cnt">24</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="TLT" onchange="iitFilter()"><span class="iit-facet-name">TLT</span><span class="iit-facet-cnt">13</span></label>
+                  </div>
+
+                  <!-- 패싯: 소스 -->
+                  <div class="iit-facet-group">
+                    <div class="iit-facet-title"><i class="fas fa-rss"></i> 소스</div>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="X" onchange="iitFilter()"><span class="iit-facet-name">X (Twitter)</span><span class="iit-facet-cnt">38</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Substack" onchange="iitFilter()"><span class="iit-facet-name">Substack</span><span class="iit-facet-cnt">26</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="Bloomberg" onchange="iitFilter()"><span class="iit-facet-name">Bloomberg</span><span class="iit-facet-cnt">41</span></label>
+                    <label class="iit-facet-item"><input type="checkbox" class="iit-cb" data-tag="SeekingAlpha" onchange="iitFilter()"><span class="iit-facet-name">Seeking Alpha</span><span class="iit-facet-cnt">17</span></label>
+                  </div>
+
+                </div>
+              </aside>
+              <!-- /iit-sidebar -->
+
+              <!-- ══ B. 중앙 메인 패널 (헤더 + 타임라인) ══ -->
+              <div class="iit-main" id="iit-main">
+
+                <!-- B-1. 고정 상단 컨트롤 헤더 -->
+                <div class="iit-ctrl-hdr">
+                  <div class="iit-ctrl-left">
+                    <button class="iit-sidebar-toggle" id="iit-sb-toggle" onclick="iitToggleSidebar()" title="사이드바 토글">
+                      <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="iit-ctrl-title">이슈-인사이트 스레드</span>
+                    <span class="iit-ctrl-sub" id="iit-result-cnt">전체 7개 이슈</span>
+                  </div>
+                  <div class="iit-ctrl-center">
+                    <button class="iit-preset-btn active" onclick="iitPreset(this,'all')">전체</button>
+                    <button class="iit-preset-btn" onclick="iitPreset(this,'macro')">매크로</button>
+                    <button class="iit-preset-btn" onclick="iitPreset(this,'sector')">섹터/테마</button>
+                    <button class="iit-preset-btn" onclick="iitPreset(this,'pf')">내 포트폴리오</button>
+                  </div>
+                  <div class="iit-ctrl-right">
+                    <span class="iit-sort-label">정렬:</span>
+                    <button class="iit-sort-btn active" onclick="iitSort(this,'time')">최신순</button>
+                    <button class="iit-sort-btn" onclick="iitSort(this,'rel')">관련도순</button>
+                  </div>
+                </div>
+
+                <!-- B-2. 마스터 타임라인 -->
+                <div class="iit-timeline" id="iit-timeline">
+                  <!-- JS로 렌더링 -->
+                </div>
+
               </div>
+              <!-- /iit-main -->
 
             </div>
-            <!-- /iit-main -->
-
+            <!-- /iit-root -->
           </div>
-          <!-- /iit-root -->
+          <!-- /db-iit-panel -->
+
+          <!-- ═══ 우측 40%: 매크로 국면 나침반 ═══ -->
+          <div class="db-radar-panel">
+            <div class="mpr-root" id="mpr-root">
+
+              <!-- 헤더 -->
+              <div class="mpr-header">
+                <div class="mpr-title">
+                  <span class="mpr-title-dot"></span>
+                  MACRO PHASE RADAR
+                </div>
+                <span class="mpr-meta" id="mpr-date">2026-06-17 · N=10</span>
+              </div>
+
+              <!-- 차트 바디 -->
+              <div class="mpr-body">
+                <div class="mpr-chart-wrap">
+                  <div id="mpr-chart"></div>
+                </div>
+              </div>
+
+              <!-- 하단 범례 스트립 -->
+              <div class="mpr-legend-strip" id="mpr-legend-strip"></div>
+
+            </div>
+            <!-- /mpr-root -->
+
+            <!-- 툴팁 (fixed 포지셔닝) -->
+            <div class="mpr-tooltip" id="mpr-tooltip"></div>
+          </div>
+          <!-- /db-radar-panel -->
+
         </div>
         <!-- /db-body -->
       \`;
 
-      // IIT 위젯 초기화
-      requestAnimationFrame(() => { initIIT(); });
+      // IIT + MPR 위젯 초기화
+      requestAnimationFrame(() => {
+        initIIT();
+        initMPR();
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  MPR — 10축 매크로 국면 나침반 (Macro Phase Radar)
+    // ══════════════════════════════════════════════════════════════
+
+    // 10개 축 정의 (순서 = θ_i = 2π·i/10 방향)
+    const MPR_AXES = [
+      { id: 'growth',      label: '성장기',                       color: '#3FB950' },
+      { id: 'overheat',    label: '과열기',                       color: '#F78166' },
+      { id: 'sideways',    label: '횡보',                         color: '#8B949E' },
+      { id: 'stagflation', label: '스태그플레이션',              color: '#D29922' },
+      { id: 'deflation',   label: '디플레이션',                   color: '#79C0FF' },
+      { id: 'liq_crush',   label: '유동성 크러시',               color: '#F85149' },
+      { id: 'reflation',   label: '플레이션',                     color: '#FFA657' },
+      { id: 'fin_repr',    label: '금융억압',          color: '#CE93D8' },
+      { id: 'goldilocks',  label: '골디락스',                     color: '#58A6FF' },
+      { id: 'geofrag',     label: 'Geo Fragmentation',   color: '#E3B341' },
+    ];
+
+    // 샘플 가중치 데이터 (정규화 합=1)
+    // 실제 구현 시 수식 엔진 결과로 교체
+    const MPR_WEIGHTS_HISTORY = [
+      // trail: 과거 → 현재 순서
+      [0.05, 0.08, 0.12, 0.10, 0.06, 0.14, 0.09, 0.11, 0.15, 0.10],
+      [0.06, 0.09, 0.11, 0.11, 0.05, 0.13, 0.10, 0.10, 0.16, 0.09],
+      [0.07, 0.10, 0.10, 0.12, 0.05, 0.12, 0.11, 0.09, 0.17, 0.07],
+      [0.08, 0.11, 0.09, 0.13, 0.04, 0.11, 0.12, 0.08, 0.18, 0.06],
+      // 현재값
+      [0.09, 0.12, 0.08, 0.14, 0.04, 0.10, 0.13, 0.07, 0.19, 0.04],
+    ];
+
+    // Barycentric 좌표 계산
+    // θ_i = 2π·i/N, X = Σ(W_i·cos(θ_i)), Y = Σ(W_i·sin(θ_i))
+    function mprBarycentricXY(weights, N) {
+      let x = 0, y = 0;
+      for (let i = 0; i < N; i++) {
+        const theta = (2 * Math.PI * i) / N;
+        x += weights[i] * Math.cos(theta);
+        y += weights[i] * Math.sin(theta);
+      }
+      return [x, y];
+    }
+
+    // ECharts 좌표계: radar 반지름 = 1 (max), 중심 = [0, 0]
+    // ECharts radar는 내부적으로 [0,100] 척도 — scatter는 별도 좌표계 필요
+    // → custom 방식 대신: radar(배경) + grid+scatter(포인트) 오버레이 방식
+    // → radar의 center/radius 를 알고, scatter에서 픽셀 좌표 직접 계산
+    let mprChart = null;
+    let mprResizeObs = null;
+
+    function initMPR() {
+      const wrap = document.getElementById('mpr-chart');
+      if (!wrap) return;
+      if (typeof echarts === 'undefined') {
+        // ECharts 미로드 시 재시도
+        setTimeout(initMPR, 300);
+        return;
+      }
+      if (mprChart) { mprChart.dispose(); mprChart = null; }
+
+      mprChart = echarts.init(wrap, null, { renderer: 'canvas' });
+      mprRenderChart();
+      mprRenderLegend();
+
+      // 렌더 완료 후 Barycentric Dot 배치
+      mprChart.on('finished', function() {
+        mprPlaceDot();
+      });
+
+      // ResizeObserver
+      if (mprResizeObs) mprResizeObs.disconnect();
+      mprResizeObs = new ResizeObserver(() => {
+        if (mprChart) {
+          mprChart.resize();
+          setTimeout(mprPlaceDot, 50);
+        }
+      });
+      mprResizeObs.observe(wrap);
+    }
+
+    function mprRenderChart() {
+      if (!mprChart) return;
+      const N = 10;
+
+      // ── Barycentric 좌표를 radar 좌표계 값으로 변환 ──
+      // ECharts radar 좌표계에서 각 indicator 방향의 단위벡터는:
+      //   θ_i = startAngle - (2π·i/N) (ECharts는 시계방향, startAngle=90°)
+      // Barycentric 점 (bx, by)를 각 indicator의 투영값으로 역산:
+      //   value_i = dot([bx,by], [cos(θ_i), sin(θ_i)]) * max
+      // 단, 값이 음수면 0으로 클램프
+
+      function barycentricToRadarValues(weights) {
+        // Barycentric 좌표 계산 (단위벡터 기준 θ_i = 2π·i/N, 시작 0=우측)
+        // ECharts radar startAngle=90 → θ_i_echarts = 90° - 360°·i/N (도 단위)
+        let bx = 0, by = 0;
+        for (let i = 0; i < N; i++) {
+          const theta = (2 * Math.PI * i) / N; // 0 = 우측부터 시계방향과 반시계방향
+          bx += weights[i] * Math.cos(theta);
+          by += weights[i] * Math.sin(theta);
+        }
+        // 각 indicator 방향으로 투영 → radar 값 (0~max)
+        // ECharts startAngle=90 → 첫 번째 축이 위쪽(90°)
+        const vals = [];
+        for (let i = 0; i < N; i++) {
+          const thetaDeg = 90 - (360 * i) / N;
+          const thetaRad = thetaDeg * Math.PI / 180;
+          const proj = bx * Math.cos(thetaRad) + by * Math.sin(thetaRad);
+          vals.push(Math.max(0, proj));
+        }
+        return vals;
+      }
+
+      const currentW = MPR_WEIGHTS_HISTORY[MPR_WEIGHTS_HISTORY.length - 1];
+
+      // Trail 시리즈: 각 히스토리 포인트를 radar 값으로 변환
+      const trailSeries = MPR_WEIGHTS_HISTORY.slice(0, -1).map((w, idx) => {
+        const vals = barycentricToRadarValues(w);
+        const alpha = 0.08 + (idx / MPR_WEIGHTS_HISTORY.length) * 0.25;
+        return {
+          type: 'radar',
+          data: [{
+            value: vals,
+            areaStyle: { color: \`rgba(88,166,255,\${(alpha * 0.4).toFixed(2)})\` },
+            lineStyle: { color: \`rgba(88,166,255,\${alpha.toFixed(2)})\`, width: 1 },
+            symbol: 'circle',
+            symbolSize: 3,
+            itemStyle: { color: \`rgba(88,166,255,\${(alpha * 1.5).toFixed(2)})\` },
+          }],
+          silent: true,
+          z: 3 + idx,
+        };
+      });
+
+      // 현재 상태 시리즈
+      const currentVals = barycentricToRadarValues(currentW);
+
+      const option = {
+        backgroundColor: '#0B0E14',
+        animation: true,
+        animationDuration: 900,
+        animationEasing: 'cubicOut',
+
+        tooltip: {
+          show: false, // 커스텀 툴팁 사용
+        },
+
+        radar: {
+          center: ['50%', '50%'],
+          radius: '58%',
+          startAngle: 90,
+          splitNumber: 4,
+          shape: 'polygon',
+          indicator: MPR_AXES.map(a => ({
+            name: a.label,
+            max: 0.35,
+          })),
+          splitArea: {
+            areaStyle: {
+              color: [
+                'rgba(42,46,57,0.3)', 'rgba(42,46,57,0.5)',
+                'rgba(42,46,57,0.3)', 'rgba(42,46,57,0.5)',
+              ],
+            },
+          },
+          splitLine: {
+            lineStyle: { color: '#2A2E39', width: 1 },
+          },
+          axisLine: {
+            lineStyle: { color: '#2A2E39', width: 1 },
+          },
+          axisName: {
+            color: '#8B949E',
+            fontSize: 9,
+            fontFamily: 'Inter, sans-serif',
+            lineHeight: 13,
+            padding: [2, 4],
+            rich: {
+              a: { color: '#8B949E', fontSize: 9 },
+            },
+          },
+        },
+
+        series: [
+          // ── Trail (과거 궤적) ──
+          ...trailSeries,
+
+          // ── 현재 국면 영역 ──
+          {
+            type: 'radar',
+            data: [{
+              value: currentVals,
+              name: '현재 국면',
+              areaStyle: {
+                color: {
+                  type: 'radial',
+                  x: 0.5, y: 0.5, r: 0.5,
+                  colorStops: [
+                    { offset: 0,   color: 'rgba(88,166,255,0.35)' },
+                    { offset: 1,   color: 'rgba(88,166,255,0.05)' },
+                  ],
+                },
+              },
+              lineStyle: {
+                color: '#58A6FF',
+                width: 1.5,
+                shadowBlur: 8,
+                shadowColor: 'rgba(88,166,255,0.5)',
+              },
+              symbol: 'circle',
+              symbolSize: 4,
+              itemStyle: {
+                color: '#58A6FF',
+                shadowBlur: 6,
+                shadowColor: 'rgba(88,166,255,0.6)',
+              },
+            }],
+            emphasis: {
+              lineStyle: { width: 2 },
+              areaStyle: { color: 'rgba(88,166,255,0.4)' },
+            },
+            z: 8,
+          },
+
+          // ── 무게중심 포인터 (Barycentric Dot) ──
+          // radar 좌표계에서 중심 방향 투영이 가장 큰 indicator 쪽으로 단일 점 표시
+          // → 별도 scatter를 쓰되, graphic으로 오버레이
+        ],
+
+        // 무게중심 점을 graphic 엘리먼트로 직접 렌더링
+        graphic: mprBuildDot(currentW),
+      };
+
+      mprChart.setOption(option, true);
+
+      // 마우스 이벤트 갱신
+      mprChart.off('mouseover');
+      mprChart.off('mouseout');
+      mprChart.off('mousemove');
+      mprChart.on('mouseover', function(p) {
+        if (p.seriesIndex !== undefined) {
+          mprShowTooltip(p.event.event, currentW);
+        }
+      });
+      mprChart.on('mouseout', function() { mprHideTooltip(); });
+      mprChart.on('mousemove', function(p) {
+        if (p.event) mprMoveTooltip(p.event.event);
+      });
+    }
+
+    // 무게중심 좌표를 ECharts graphic 좌표(픽셀)로 변환
+    function mprBuildDot(weights) {
+      // graphic은 차트 렌더 직후 픽셀 위치를 계산해야 함
+      // 여기서는 afterRender 타이밍에 좌표를 주입
+      // 렌더 전엔 placeholder로 설정, afterRender에서 갱신
+      return [];
+    }
+
+    // 렌더 완료 후 Barycentric Dot를 graphic으로 추가
+    function mprPlaceDot() {
+      if (!mprChart) return;
+      const N = 10;
+      const currentW = MPR_WEIGHTS_HISTORY[MPR_WEIGHTS_HISTORY.length - 1];
+
+      // radar center/radius를 px로 계산
+      const width  = mprChart.getWidth();
+      const height = mprChart.getHeight();
+      const cx_px  = width  * 0.5;
+      const cy_px  = height * 0.5;
+      const r_px   = Math.min(width, height) * 0.58 / 2; // radius=58%, 반지름
+
+      // Barycentric 좌표 (단위: 정규화 반경 기준)
+      // 각 축의 ECharts 실제 각도: θ_i = 90° - (360°·i/N) = startAngle 기준
+      let bx = 0, by = 0;
+      for (let i = 0; i < N; i++) {
+        const thetaDeg = 90 - (360 * i) / N;
+        const thetaRad = thetaDeg * Math.PI / 180;
+        bx += currentW[i] * Math.cos(thetaRad);
+        by += currentW[i] * Math.sin(thetaRad);
+      }
+
+      // 픽셀 좌표 (max=0.35 스케일에 맞춰 r_px 조정)
+      const scale = r_px / 0.35;
+      const dot_x = cx_px + bx * scale;
+      const dot_y = cy_px - by * scale; // ECharts y축은 아래가 +
+
+      mprChart.setOption({
+        graphic: [
+          // Glow ring
+          {
+            type: 'circle',
+            shape: { cx: dot_x, cy: dot_y, r: 10 },
+            style: {
+              fill: 'rgba(88,166,255,0)',
+              stroke: 'rgba(88,166,255,0.25)',
+              lineWidth: 8,
+            },
+            silent: true,
+            z: 9,
+          },
+          // Outer glow
+          {
+            type: 'circle',
+            shape: { cx: dot_x, cy: dot_y, r: 7 },
+            style: {
+              fill: 'rgba(88,166,255,0)',
+              stroke: 'rgba(88,166,255,0.45)',
+              lineWidth: 4,
+            },
+            silent: true,
+            z: 10,
+          },
+          // 메인 포인터
+          {
+            type: 'circle',
+            shape: { cx: dot_x, cy: dot_y, r: 5 },
+            style: {
+              fill: '#58A6FF',
+              shadowBlur: 18,
+              shadowColor: 'rgba(88,166,255,0.9)',
+            },
+            cursor: 'pointer',
+            z: 11,
+            onmouseover: function() {
+              const fakeEvt = { clientX: dot_x + mprChart.getDom().getBoundingClientRect().left,
+                                clientY: dot_y + mprChart.getDom().getBoundingClientRect().top };
+              mprShowTooltip(fakeEvt, currentW);
+            },
+            onmouseout: function() { mprHideTooltip(); },
+            onmousemove: function(e) { mprMoveTooltip(e.event || e); },
+          },
+        ],
+      }, false);
+    }
+
+    function mprRenderLegend() {
+      const strip = document.getElementById('mpr-legend-strip');
+      if (!strip) return;
+      const currentW = MPR_WEIGHTS_HISTORY[MPR_WEIGHTS_HISTORY.length - 1];
+      // 상위 3개 가중치 축만 하단 범례에 표시
+      const sorted = MPR_AXES.map((a, i) => ({ ...a, w: currentW[i] }))
+                              .sort((a, b) => b.w - a.w)
+                              .slice(0, 5);
+      strip.innerHTML = sorted.map(a =>
+        \`<div class="mpr-legend-item">
+          <span class="mpr-legend-dot" style="background:\${a.color};"></span>
+          \${a.label}
+          <span style="color:#E6EDF3;margin-left:3px;">\${(a.w * 100).toFixed(1)}%</span>
+        </div>\`
+      ).join('');
+    }
+
+    function mprShowTooltip(evt, weights) {
+      const tt = document.getElementById('mpr-tooltip');
+      if (!tt) return;
+      const sorted = MPR_AXES.map((a, i) => ({ ...a, w: weights[i] }))
+                              .sort((a, b) => b.w - a.w);
+      tt.innerHTML = \`
+        <div class="mpr-tt-title">▸ 국면 가중치 분포</div>
+        \${sorted.map(a => \`
+          <div class="mpr-tt-item">
+            <span class="mpr-tt-label" title="\${a.label}">\${a.label}</span>
+            <div class="mpr-tt-bar-wrap">
+              <div class="mpr-tt-bar" style="width:\${(a.w*100).toFixed(1)}%;background:\${a.color}40;border-right:2px solid \${a.color};"></div>
+            </div>
+            <span class="mpr-tt-pct" style="color:\${a.color};">\${(a.w*100).toFixed(1)}%</span>
+          </div>
+        \`).join('')}
+      \`;
+      tt.classList.add('visible');
+      mprMoveTooltip(evt);
+    }
+
+    function mprMoveTooltip(evt) {
+      const tt = document.getElementById('mpr-tooltip');
+      if (!tt || !tt.classList.contains('visible')) return;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let x = evt.clientX + 14, y = evt.clientY - 10;
+      if (x + 290 > vw) x = evt.clientX - 294;
+      if (y + 400 > vh) y = evt.clientY - 400;
+      tt.style.left = x + 'px';
+      tt.style.top  = y + 'px';
+    }
+
+    function mprHideTooltip() {
+      const tt = document.getElementById('mpr-tooltip');
+      if (tt) tt.classList.remove('visible');
     }
 
     // ── ARC GAUGE ──
@@ -4925,7 +5444,46 @@ app.get('*', (c) => {
       });
     }
 
-    // ── 프리셋 적용 ──
+    // ── 프리셋 드롭다운 토글 ──
+    function mcTogglePresetDropdown(e) {
+      e.stopPropagation();
+      const trigger = document.getElementById('mc-preset-trigger');
+      const dropdown = document.getElementById('mc-preset-dropdown');
+      if (!trigger || !dropdown) return;
+      const isOpen = dropdown.classList.contains('open');
+      dropdown.classList.toggle('open', !isOpen);
+      trigger.classList.toggle('open', !isOpen);
+    }
+
+    // ── 드롭다운 아이템 클릭으로 프리셋 적용 ──
+    function mcApplyPresetDrop(el, presetId) {
+      // 드롭다운 닫기
+      const trigger = document.getElementById('mc-preset-trigger');
+      const dropdown = document.getElementById('mc-preset-dropdown');
+      if (dropdown) dropdown.classList.remove('open');
+      if (trigger) { trigger.classList.remove('open'); trigger.classList.add('active'); }
+      // active 표시
+      document.querySelectorAll('.mc-preset-item').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      // 선택된 이름 표시
+      const nameEl = document.getElementById('mc-preset-active-name');
+      if (nameEl && el) nameEl.textContent = el.textContent.trim();
+      // 프리셋 데이터 적용
+      mcApplyPreset(null, presetId);
+    }
+
+    // ── 외부 클릭 시 드롭다운 닫기 ──
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('mc-preset-wrap');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('mc-preset-dropdown');
+        const trigger = document.getElementById('mc-preset-trigger');
+        if (dropdown) dropdown.classList.remove('open');
+        if (trigger) trigger.classList.remove('open');
+      }
+    });
+
+    // ── 프리셋 적용 (내부) ──
     function mcApplyPreset(btn, presetId) {
       const preset = MC_PRESETS[presetId];
       if (!preset) return;
@@ -4935,7 +5493,7 @@ app.get('*', (c) => {
       preset.forEach(id => mcAddIndicator(id));
       mcSyncCheckboxes();
       mcRenderLegend();
-      // 버튼 active 상태
+      // 레거시 .mc-preset-btn 호환
       document.querySelectorAll('.mc-preset-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
     }
