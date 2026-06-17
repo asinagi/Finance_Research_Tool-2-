@@ -2914,6 +2914,301 @@ app.get('*', (c) => {
       .corr-inner-layout { grid-template-columns: 1fr; }
     } */
 
+    /* ══════════════════════════════════════════════
+       TREEMAP (SCREENER PAGE) — Wheel-Zoom Heatmap
+    ══════════════════════════════════════════════ */
+    #page-screener {
+      padding: 0;
+      overflow: hidden;
+    }
+    .tm-root {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    /* ── 상단 브레드크럼 헤더 ── */
+    .tm-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 30px;
+      flex-shrink: 0;
+      background: #0B0E14;
+      border-bottom: 1px solid #1E2738;
+      padding: 0 10px;
+    }
+    .tm-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .tm-bc-item {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #58A6FF;
+      cursor: pointer;
+      white-space: nowrap;
+      padding: 0 4px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    .tm-bc-item:hover { background: rgba(88,166,255,0.12); }
+    .tm-bc-item.active { color: #E6EDF3; cursor: default; }
+    .tm-bc-sep {
+      font-size: 10px;
+      color: #3D4452;
+      margin: 0 1px;
+    }
+    .tm-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .tm-hdr-btn {
+      background: none;
+      border: 1px solid #1E2738;
+      border-radius: 3px;
+      color: #8B949E;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 7px;
+      cursor: pointer;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .tm-hdr-btn:hover { border-color: #58A6FF; color: #58A6FF; }
+    .tm-depth-badge {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #3D4452;
+      background: #0D1117;
+      border: 1px solid #1E2738;
+      border-radius: 3px;
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+    .tm-depth-badge span { color: #58A6FF; }
+
+    /* ── 메인 바디 ── */
+    .tm-body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── 좌측 컨트롤 사이드바 ── */
+    .tm-sidebar {
+      width: 180px;
+      min-width: 180px;
+      flex-shrink: 0;
+      background: #0B0E14;
+      border-right: 1px solid #1E2738;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width 0.2s ease, min-width 0.2s ease;
+    }
+    .tm-sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .tm-sb-inner {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+      scrollbar-width: thin;
+      scrollbar-color: #1E2738 transparent;
+    }
+    .tm-sb-section {
+      padding: 0 10px 8px;
+      border-bottom: 1px solid #1E2738;
+      margin-bottom: 8px;
+    }
+    .tm-sb-section:last-child { border-bottom: none; margin-bottom: 0; }
+    .tm-sb-label {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #3D4452;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    /* Radio size metric */
+    .tm-radio-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      cursor: pointer;
+    }
+    .tm-radio-row input[type=radio] {
+      accent-color: #58A6FF;
+      width: 11px;
+      height: 11px;
+    }
+    .tm-radio-row span {
+      font-size: 10px;
+      color: #8B949E;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Checkbox asset filter */
+    .tm-check-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      cursor: pointer;
+    }
+    .tm-check-row input[type=checkbox] {
+      accent-color: #58A6FF;
+      width: 11px;
+      height: 11px;
+    }
+    .tm-check-row span {
+      font-size: 10px;
+      color: #8B949E;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .tm-check-row .tm-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    /* Search input */
+    .tm-search-wrap {
+      position: relative;
+      margin-bottom: 2px;
+    }
+    .tm-search-icon {
+      position: absolute;
+      left: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3D4452;
+      font-size: 9px;
+    }
+    .tm-search-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: #0D1117;
+      border: 1px solid #1E2738;
+      border-radius: 3px;
+      color: #E6EDF3;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 6px 3px 22px;
+      height: 24px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .tm-search-input:focus { border-color: #58A6FF; }
+    .tm-search-input::placeholder { color: #3D4452; }
+    /* Color legend */
+    .tm-legend-bar {
+      height: 10px;
+      border-radius: 3px;
+      background: linear-gradient(to right, #FF1A1A 0%, #CC0000 25%, #141414 50%, #006400 75%, #00CC44 100%);
+      margin: 4px 0 2px;
+    }
+    .tm-legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #3D4452;
+    }
+    /* Sidebar toggle tab */
+    .tm-sb-toggle {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 40px;
+      background: #1E2738;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      color: #8B949E;
+      font-size: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      transition: background 0.15s;
+    }
+    .tm-sb-toggle:hover { background: #58A6FF; color: #000; }
+
+    /* ── 캔버스 영역 ── */
+    .tm-canvas-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tm-chart-container {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #000;
+    }
+    #tm-echarts {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── 휠 힌트 오버레이 ── */
+    .tm-wheel-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid #1E2738;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #3D4452;
+      pointer-events: none;
+      z-index: 50;
+    }
+    .tm-wheel-hint .tm-hint-key {
+      color: #58A6FF;
+    }
+
+    /* ── 드릴다운 락 오버레이 (애니메이션 중 입력 차단) ── */
+    .tm-lock-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      pointer-events: all;
+    }
+    .tm-lock-overlay.active { display: block; }
+
+    /* ── bounce 애니메이션 (리프 노드 피드백) ── */
+    @keyframes tmBounce {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.04); }
+      60%  { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+    .tm-bounce { animation: tmBounce 0.35s ease; }
+
     /* ===== ANIMATED ENTRY ===== */
     .fade-in {
       animation: fadeIn 0.4s ease-out;
@@ -3712,7 +4007,119 @@ app.get('*', (c) => {
 
         <div class="page-view fade-in" id="page-regime"></div>
 
-        <div class="page-view fade-in" id="page-screener"></div>
+        <!-- ════════════════════════════════════════════
+             PAGE: 글로벌 크로스에셋 휠-줌 히트맵 대시보드
+        ════════════════════════════════════════════ -->
+        <div class="page-view fade-in" id="page-screener">
+          <div class="tm-root" id="tm-root">
+
+            <!-- ── 상단 브레드크럼 헤더 ── -->
+            <div class="tm-header">
+              <div class="tm-breadcrumb" id="tm-breadcrumb">
+                <span class="tm-bc-item active" data-depth="-1" onclick="tmNavTo(-1)">전체자산시장</span>
+              </div>
+              <div class="tm-header-right">
+                <div class="tm-depth-badge">DEPTH <span id="tm-depth-num">1</span></div>
+                <button class="tm-hdr-btn" onclick="tmNavTo(-1)" title="최상위로 돌아가기">
+                  <i class="fas fa-home"></i> 루트
+                </button>
+                <button class="tm-hdr-btn" onclick="tmDrillUp()" title="한 단계 올라가기">
+                  <i class="fas fa-level-up-alt"></i> UP
+                </button>
+                <button class="tm-hdr-btn" id="tm-sidebar-toggle" onclick="tmToggleSidebar()" title="사이드바 토글">
+                  <i class="fas fa-sliders-h"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- ── 메인 바디 ── -->
+            <div class="tm-body">
+
+              <!-- 좌측 컨트롤 사이드바 -->
+              <aside class="tm-sidebar" id="tm-sidebar">
+                <div class="tm-sb-inner">
+
+                  <!-- 1. 사각형 크기(면적) 기준 -->
+                  <div class="tm-sb-section">
+                    <div class="tm-sb-label">사각형 크기 기준</div>
+                    <label class="tm-radio-row">
+                      <input type="radio" name="tm-metric" value="volume" checked onchange="tmSetMetric('volume')">
+                      <span>실시간 거래대금</span>
+                    </label>
+                    <label class="tm-radio-row">
+                      <input type="radio" name="tm-metric" value="mcap" onchange="tmSetMetric('mcap')">
+                      <span>시가총액</span>
+                    </label>
+                  </div>
+
+                  <!-- 2. 자산군 필터 -->
+                  <div class="tm-sb-section">
+                    <div class="tm-sb-label">자산군 필터</div>
+                    <label class="tm-check-row">
+                      <input type="checkbox" class="tm-asset-cb" value="equity" checked onchange="tmFilterChanged()">
+                      <span class="tm-dot" style="background:#3FB950"></span>
+                      <span>주식</span>
+                    </label>
+                    <label class="tm-check-row">
+                      <input type="checkbox" class="tm-asset-cb" value="bond" checked onchange="tmFilterChanged()">
+                      <span class="tm-dot" style="background:#58A6FF"></span>
+                      <span>채권</span>
+                    </label>
+                    <label class="tm-check-row">
+                      <input type="checkbox" class="tm-asset-cb" value="commodity" checked onchange="tmFilterChanged()">
+                      <span class="tm-dot" style="background:#F0C050"></span>
+                      <span>원자재</span>
+                    </label>
+                    <label class="tm-check-row">
+                      <input type="checkbox" class="tm-asset-cb" value="fx" checked onchange="tmFilterChanged()">
+                      <span class="tm-dot" style="background:#CE93D8"></span>
+                      <span>통화</span>
+                    </label>
+                    <label class="tm-check-row">
+                      <input type="checkbox" class="tm-asset-cb" value="crypto" checked onchange="tmFilterChanged()">
+                      <span class="tm-dot" style="background:#F78166"></span>
+                      <span>대체투자(크립토)</span>
+                    </label>
+                  </div>
+
+                  <!-- 3. 검색 (하이라이팅) -->
+                  <div class="tm-sb-section">
+                    <div class="tm-sb-label">티커 하이라이팅</div>
+                    <div class="tm-search-wrap">
+                      <i class="fas fa-search tm-search-icon"></i>
+                      <input class="tm-search-input" id="tm-search" placeholder="티커, 섹터 검색..." oninput="tmOnSearch(this.value)">
+                    </div>
+                  </div>
+
+                  <!-- 4. 등락률 색상 범례 -->
+                  <div class="tm-sb-section">
+                    <div class="tm-sb-label">등락률 색상 범례</div>
+                    <div class="tm-legend-bar"></div>
+                    <div class="tm-legend-labels">
+                      <span>-3%</span><span>0%</span><span>+3%</span>
+                    </div>
+                  </div>
+
+                </div>
+              </aside>
+
+              <!-- 캔버스 영역 -->
+              <div class="tm-canvas-wrap" id="tm-canvas-wrap">
+                <div class="tm-chart-container">
+                  <div id="tm-echarts"></div>
+                  <div class="tm-lock-overlay" id="tm-lock"></div>
+                </div>
+                <div class="tm-wheel-hint">
+                  <span class="tm-hint-key">↓ 휠 다운</span> = Drill-In &nbsp;|&nbsp; <span class="tm-hint-key">↑ 휠 업</span> = Drill-Out
+                </div>
+              </div>
+
+            </div>
+            <!-- /tm-body -->
+          </div>
+          <!-- /tm-root -->
+        </div>
+        <!-- /page-screener -->
 
         <!-- ════════════════════════════════════════════
              PAGE: 매크로 차트 (Macro Chart)
@@ -3970,6 +4377,23 @@ app.get('*', (c) => {
       if (meta) {
         document.getElementById('breadcrumb-module').textContent = meta.section;
         document.getElementById('breadcrumb-page').textContent = meta.label;
+      }
+
+      // ── 페이지별 후처리 초기화 ──
+      if (page === 'chart') {
+        // DOM 레이아웃이 완전히 적용된 후 차트 초기화
+        requestAnimationFrame(() => setTimeout(() => {
+          if (typeof initMC === 'function') {
+            if (!MC_STATE.chart) { initMC(); }
+            else { mcHandleResize(); }
+          }
+        }, 50));
+      }
+      if (page === 'screener') {
+        requestAnimationFrame(() => setTimeout(() => {
+          if (typeof initTM === 'function' && !TM_STATE.chart) { initTM(); }
+          else if (typeof tmHandleResize === 'function') { tmHandleResize(); }
+        }, 50));
       }
     }
 
@@ -5656,23 +6080,545 @@ app.get('*', (c) => {
       if (el) el.classList.toggle('collapsed');
     }
 
-    // ── 페이지 진입 시 MC 초기화 ──
-    // navigate() 후 page-chart 활성화 될 때 호출
-    (function patchNavigateForMC() {
-      const _origNav = window.navigate || function(){};
-      // navigate 함수는 글로벌이므로 래핑
-      const origBody = navigate.toString();
-      // page 'chart' 진입 시 initMC 호출
-      document.addEventListener('click', e => {
-        const navItem = e.target.closest('.nav-item[data-page="chart"]');
-        if (navItem) {
-          requestAnimationFrame(() => {
-            if (!MC_STATE.chart) initMC();
-            else mcHandleResize();
-          });
-        }
+    // ── MC 초기화는 navigate() 훅에서 처리 (위 navigate 함수 내 page==='chart' 분기 참조) ──
+
+    // ══════════════════════════════════════════════
+    // TM — 글로벌 크로스에셋 휠-줌 히트맵 트리맵
+    // ══════════════════════════════════════════════
+
+    // ── 색상 보간 유틸 ──
+    function tmLerpColor(pct) {
+      // pct: -1(풀레드) ~ 0(블랙) ~ +1(풀그린)
+      const t = Math.max(-1, Math.min(1, pct));
+      if (t < 0) {
+        // 레드: #FF1A1A(t=-1) → #141414(t=0)
+        const r = Math.round(20 + (255-20) * (-t));
+        const g = Math.round(20 * (1+t));
+        const b = Math.round(20 * (1+t));
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      } else {
+        // 그린: #141414(t=0) → #00DD44(t=1)
+        const r = Math.round(20 * (1-t));
+        const g = Math.round(20 + (221-20) * t);
+        const b = Math.round(20 + (68-20) * t);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+    }
+
+    // ── 계층 데이터 (Depth 1→2→3) ──
+    // 각 노드: { id, name, chg(%), volume, mcap, assetClass, children? }
+    const TM_DATA = {
+      id: 'root', name: '전체자산시장',
+      children: [
+        // ────────────── 주식 ──────────────
+        { id: 'equity', name: '주식', assetClass: 'equity',
+          children: [
+            { id: 'tech', name: '기술주', assetClass: 'equity', chg: 1.24,
+              children: [
+                { id: 'NVDA', name: 'NVDA', ticker: true, assetClass: 'equity', chg: 3.82, volume: 4800, mcap: 24000 },
+                { id: 'AAPL', name: 'AAPL', ticker: true, assetClass: 'equity', chg: 0.54, volume: 3200, mcap: 31000 },
+                { id: 'MSFT', name: 'MSFT', ticker: true, assetClass: 'equity', chg: 0.91, volume: 2800, mcap: 29000 },
+                { id: 'META', name: 'META', ticker: true, assetClass: 'equity', chg: 2.17, volume: 2100, mcap: 13500 },
+                { id: 'GOOGL', name: 'GOOGL', ticker: true, assetClass: 'equity', chg: 1.05, volume: 1900, mcap: 21000 },
+                { id: 'AVGO', name: 'AVGO', ticker: true, assetClass: 'equity', chg: 2.66, volume: 1700, mcap: 8200 },
+                { id: 'AMD', name: 'AMD', ticker: true, assetClass: 'equity', chg: -0.88, volume: 1500, mcap: 2800 },
+                { id: 'QCOM', name: 'QCOM', ticker: true, assetClass: 'equity', chg: 0.33, volume: 980, mcap: 1900 },
+                { id: 'INTC', name: 'INTC', ticker: true, assetClass: 'equity', chg: -2.14, volume: 820, mcap: 850 },
+                { id: 'TSM', name: 'TSM', ticker: true, assetClass: 'equity', chg: 1.77, volume: 760, mcap: 9200 },
+              ]
+            },
+            { id: 'fin', name: '금융주', assetClass: 'equity', chg: -0.31,
+              children: [
+                { id: 'JPM', name: 'JPM', ticker: true, assetClass: 'equity', chg: -0.52, volume: 2100, mcap: 5600 },
+                { id: 'GS', name: 'GS', ticker: true, assetClass: 'equity', chg: 0.18, volume: 1400, mcap: 1900 },
+                { id: 'BAC', name: 'BAC', ticker: true, assetClass: 'equity', chg: -0.77, volume: 1800, mcap: 3100 },
+                { id: 'MS', name: 'MS', ticker: true, assetClass: 'equity', chg: -0.33, volume: 1100, mcap: 1700 },
+                { id: 'WFC', name: 'WFC', ticker: true, assetClass: 'equity', chg: 0.41, volume: 900, mcap: 2200 },
+                { id: 'BRK', name: 'BRK.B', ticker: true, assetClass: 'equity', chg: -0.12, volume: 780, mcap: 8800 },
+              ]
+            },
+            { id: 'health', name: '헬스케어', assetClass: 'equity', chg: 0.67,
+              children: [
+                { id: 'LLY', name: 'LLY', ticker: true, assetClass: 'equity', chg: 2.34, volume: 1600, mcap: 8200 },
+                { id: 'JNJ', name: 'JNJ', ticker: true, assetClass: 'equity', chg: -0.22, volume: 1000, mcap: 3800 },
+                { id: 'UNH', name: 'UNH', ticker: true, assetClass: 'equity', chg: 1.05, volume: 920, mcap: 4900 },
+                { id: 'PFE', name: 'PFE', ticker: true, assetClass: 'equity', chg: -1.44, volume: 850, mcap: 1600 },
+              ]
+            },
+            { id: 'energy', name: '에너지', assetClass: 'equity', chg: -1.08,
+              children: [
+                { id: 'XOM', name: 'XOM', ticker: true, assetClass: 'equity', chg: -1.22, volume: 1800, mcap: 5100 },
+                { id: 'CVX', name: 'CVX', ticker: true, assetClass: 'equity', chg: -0.88, volume: 1200, mcap: 2900 },
+                { id: 'COP', name: 'COP', ticker: true, assetClass: 'equity', chg: -1.55, volume: 900, mcap: 1400 },
+              ]
+            },
+            { id: 'consdisc', name: '경기소비재', assetClass: 'equity', chg: 0.44,
+              children: [
+                { id: 'AMZN', name: 'AMZN', ticker: true, assetClass: 'equity', chg: 1.21, volume: 2800, mcap: 19800 },
+                { id: 'TSLA', name: 'TSLA', ticker: true, assetClass: 'equity', chg: -0.55, volume: 3100, mcap: 7200 },
+                { id: 'HD', name: 'HD', ticker: true, assetClass: 'equity', chg: 0.31, volume: 820, mcap: 3700 },
+              ]
+            },
+            { id: 'kospi', name: '한국 KOSPI', assetClass: 'equity', chg: 0.82,
+              children: [
+                { id: '005930', name: '삼성전자', ticker: true, assetClass: 'equity', chg: 1.12, volume: 1900, mcap: 4200 },
+                { id: '000660', name: 'SK하이닉스', ticker: true, assetClass: 'equity', chg: 2.44, volume: 1200, mcap: 1100 },
+                { id: '035720', name: '카카오', ticker: true, assetClass: 'equity', chg: -0.88, volume: 680, mcap: 320 },
+                { id: '005380', name: '현대차', ticker: true, assetClass: 'equity', chg: 0.55, volume: 540, mcap: 560 },
+              ]
+            },
+          ]
+        },
+        // ────────────── 채권 ──────────────
+        { id: 'bond', name: '채권', assetClass: 'bond',
+          children: [
+            { id: 'us_gov', name: '미국 국채', assetClass: 'bond', chg: 0.08,
+              children: [
+                { id: 'TLT', name: 'TLT (20Y+)', ticker: true, assetClass: 'bond', chg: 0.21, volume: 1800, mcap: 4800 },
+                { id: 'IEF', name: 'IEF (7-10Y)', ticker: true, assetClass: 'bond', chg: 0.12, volume: 1100, mcap: 2900 },
+                { id: 'SHY', name: 'SHY (1-3Y)', ticker: true, assetClass: 'bond', chg: 0.04, volume: 800, mcap: 2100 },
+                { id: 'VGIT', name: 'VGIT (3-10Y)', ticker: true, assetClass: 'bond', chg: 0.09, volume: 620, mcap: 1700 },
+              ]
+            },
+            { id: 'corp', name: '회사채', assetClass: 'bond', chg: -0.14,
+              children: [
+                { id: 'LQD', name: 'LQD (IG)', ticker: true, assetClass: 'bond', chg: -0.09, volume: 1200, mcap: 3600 },
+                { id: 'HYG', name: 'HYG (HY)', ticker: true, assetClass: 'bond', chg: -0.22, volume: 1500, mcap: 1900 },
+                { id: 'JNK', name: 'JNK (HY)', ticker: true, assetClass: 'bond', chg: -0.18, volume: 880, mcap: 1600 },
+              ]
+            },
+            { id: 'em_bond', name: 'EM 채권', assetClass: 'bond', chg: -0.44,
+              children: [
+                { id: 'EMB', name: 'EMB', ticker: true, assetClass: 'bond', chg: -0.48, volume: 720, mcap: 1400 },
+                { id: 'PCY', name: 'PCY', ticker: true, assetClass: 'bond', chg: -0.38, volume: 380, mcap: 480 },
+              ]
+            },
+          ]
+        },
+        // ────────────── 원자재 ──────────────
+        { id: 'commodity', name: '원자재', assetClass: 'commodity',
+          children: [
+            { id: 'precious', name: '귀금속', assetClass: 'commodity', chg: 0.88,
+              children: [
+                { id: 'GOLD_F', name: 'Gold', ticker: true, assetClass: 'commodity', chg: 0.92, volume: 2200, mcap: 14000 },
+                { id: 'SLV', name: 'Silver', ticker: true, assetClass: 'commodity', chg: 1.44, volume: 900, mcap: 1400 },
+                { id: 'PLAT', name: 'Platinum', ticker: true, assetClass: 'commodity', chg: 0.31, volume: 420, mcap: 520 },
+              ]
+            },
+            { id: 'energy_cmd', name: '에너지(원자재)', assetClass: 'commodity', chg: -1.22,
+              children: [
+                { id: 'WTI_F', name: 'WTI 원유', ticker: true, assetClass: 'commodity', chg: -1.38, volume: 3100, mcap: 8800 },
+                { id: 'BRENT', name: 'Brent', ticker: true, assetClass: 'commodity', chg: -1.12, volume: 2400, mcap: 7200 },
+                { id: 'NG', name: 'Nat. Gas', ticker: true, assetClass: 'commodity', chg: -2.44, volume: 1100, mcap: 1200 },
+              ]
+            },
+            { id: 'agri', name: '농산물', assetClass: 'commodity', chg: 0.22,
+              children: [
+                { id: 'CORN', name: 'Corn', ticker: true, assetClass: 'commodity', chg: 0.44, volume: 480, mcap: 620 },
+                { id: 'WHEAT', name: 'Wheat', ticker: true, assetClass: 'commodity', chg: -0.11, volume: 380, mcap: 480 },
+                { id: 'SOYB', name: 'Soybean', ticker: true, assetClass: 'commodity', chg: 0.28, volume: 340, mcap: 410 },
+              ]
+            },
+          ]
+        },
+        // ────────────── 통화 ──────────────
+        { id: 'fx', name: '통화(FX)', assetClass: 'fx',
+          children: [
+            { id: 'dxy', name: 'USD 인덱스', assetClass: 'fx', chg: 0.18,
+              children: [
+                { id: 'EURUSD', name: 'EUR/USD', ticker: true, assetClass: 'fx', chg: -0.22, volume: 2800, mcap: 6200 },
+                { id: 'USDJPY', name: 'USD/JPY', ticker: true, assetClass: 'fx', chg: 0.44, volume: 2400, mcap: 5100 },
+                { id: 'GBPUSD', name: 'GBP/USD', ticker: true, assetClass: 'fx', chg: -0.08, volume: 1200, mcap: 2800 },
+                { id: 'USDKRW', name: 'USD/KRW', ticker: true, assetClass: 'fx', chg: 0.31, volume: 880, mcap: 1400 },
+                { id: 'USDCNH', name: 'USD/CNH', ticker: true, assetClass: 'fx', chg: 0.12, volume: 740, mcap: 1800 },
+              ]
+            },
+          ]
+        },
+        // ────────────── 크립토 ──────────────
+        { id: 'crypto', name: '크립토(대체)', assetClass: 'crypto',
+          children: [
+            { id: 'btc_seg', name: 'BTC 생태계', assetClass: 'crypto', chg: 1.88,
+              children: [
+                { id: 'BTC', name: 'BTC', ticker: true, assetClass: 'crypto', chg: 1.94, volume: 4200, mcap: 13000 },
+                { id: 'MSTR', name: 'MSTR', ticker: true, assetClass: 'crypto', chg: 3.44, volume: 1800, mcap: 1400 },
+                { id: 'IBIT', name: 'IBIT ETF', ticker: true, assetClass: 'crypto', chg: 1.78, volume: 1400, mcap: 2200 },
+              ]
+            },
+            { id: 'eth_seg', name: 'ETH 생태계', assetClass: 'crypto', chg: 2.44,
+              children: [
+                { id: 'ETH', name: 'ETH', ticker: true, assetClass: 'crypto', chg: 2.55, volume: 2800, mcap: 5800 },
+                { id: 'LDO', name: 'Lido (LDO)', ticker: true, assetClass: 'crypto', chg: 3.88, volume: 620, mcap: 420 },
+                { id: 'AAVE', name: 'Aave', ticker: true, assetClass: 'crypto', chg: 2.11, volume: 480, mcap: 280 },
+              ]
+            },
+            { id: 'alt_seg', name: '알트코인', assetClass: 'crypto', chg: 1.22,
+              children: [
+                { id: 'SOL', name: 'Solana', ticker: true, assetClass: 'crypto', chg: 2.88, volume: 1900, mcap: 2800 },
+                { id: 'BNB', name: 'BNB', ticker: true, assetClass: 'crypto', chg: 0.88, volume: 1100, mcap: 1400 },
+                { id: 'XRP', name: 'XRP', ticker: true, assetClass: 'crypto', chg: 1.44, volume: 1400, mcap: 2200 },
+                { id: 'RGTI', name: 'RGTI', ticker: true, assetClass: 'crypto', chg: 4.88, volume: 820, mcap: 280 },
+                { id: 'DOGE', name: 'DOGE', ticker: true, assetClass: 'crypto', chg: 0.44, volume: 680, mcap: 440 },
+              ]
+            },
+          ]
+        },
+      ]
+    };
+
+    // ── 상태 ──
+    const TM_STATE = {
+      chart: null,
+      resizeObs: null,
+      metric: 'volume',       // 'volume' | 'mcap'
+      enabledAssets: new Set(['equity','bond','commodity','fx','crypto']),
+      searchKw: '',
+      path: [],               // 드릴다운 경로 [{id, name}, ...]
+      currentData: null,      // 현재 렌더링 중인 데이터 노드
+      locked: false,          // 애니메이션 락
+      lockTimer: null,
+    };
+
+    // ── 노드를 path로부터 찾기 ──
+    function tmFindNode(root, idArr) {
+      if (!idArr || idArr.length === 0) return root;
+      let node = root;
+      for (const id of idArr) {
+        const found = (node.children || []).find(c => c.id === id);
+        if (!found) return node;
+        node = found;
+      }
+      return node;
+    }
+
+    // ── 자산군 필터 적용 후 현재 뷰 데이터 생성 ──
+    function tmGetCurrentNode() {
+      const node = tmFindNode(TM_DATA, TM_STATE.path);
+      return node;
+    }
+
+    // ── ECharts 옵션 생성 ──
+    function tmBuildOption(node) {
+      const metric = TM_STATE.metric;
+      const enabled = TM_STATE.enabledAssets;
+
+      // 자식 필터링 (depth1만 자산군 필터 적용)
+      let children = node.children || [];
+      if (node.id === 'root') {
+        children = children.filter(c => enabled.has(c.assetClass));
+      }
+
+      // 색상 맵 per assetClass (레이블용 테두리색)
+      const assetColors = {
+        equity:'#3FB950', bond:'#58A6FF', commodity:'#F0C050',
+        fx:'#CE93D8', crypto:'#F78166',
+      };
+
+      // 재귀 변환
+      function toENode(n) {
+        const val = metric === 'volume' ? (n.volume || 0) : (n.mcap || 0);
+        // 자식 합산 (섹터/클래스 레벨)
+        const kids = (n.children || []).map(toENode);
+        const computedVal = kids.length > 0
+          ? kids.reduce((s, k) => s + (k.value || 0), 0)
+          : val;
+        const chgPct = n.chg || 0;
+        const bgColor = tmLerpColor(chgPct / 3); // ±3%가 풀스케일
+        const isHighlighted = TM_STATE.searchKw && n.name.toLowerCase().includes(TM_STATE.searchKw) ||
+                              TM_STATE.searchKw && (n.id || '').toLowerCase().includes(TM_STATE.searchKw);
+        return {
+          id: n.id,
+          name: n.name,
+          value: computedVal,
+          rawChg: chgPct,
+          assetClass: n.assetClass,
+          hasChildren: (n.children || []).length > 0,
+          itemStyle: {
+            color: bgColor,
+            borderColor: isHighlighted ? '#FFFF00' : '#000',
+            borderWidth: isHighlighted ? 3 : 0.5,
+            gapWidth: isHighlighted ? 3 : 1,
+            shadowBlur: isHighlighted ? 10 : 0,
+            shadowColor: isHighlighted ? '#FFFF00' : 'transparent',
+          },
+          label: {
+            show: computedVal > 0,
+            formatter: function(p) {
+              const d = p.data;
+              const chgStr = (d.rawChg >= 0 ? '+' : '') + (d.rawChg || 0).toFixed(2) + '%';
+              return '{name|' + d.name + '}\\n{chg|' + chgStr + '}';
+            },
+          },
+          children: kids,
+        };
+      }
+
+      const treeData = children.map(toENode);
+
+      return {
+        series: [{
+          type: 'treemap',
+          id: 'tm-series',
+          animationDurationUpdate: 600,
+          animationEasingUpdate: 'cubicInOut',
+          roam: false,
+          nodeClick: false,
+          data: treeData,
+          width: '100%',
+          height: '100%',
+          top: 0, bottom: 0, left: 0, right: 0,
+          squareRatio: 1.4,
+          leafDepth: null,
+          drillDownIcon: '',
+          levels: [
+            {
+              itemStyle: { borderColor: '#000', borderWidth: 2, gapWidth: 2 },
+              upperLabel: { show: false },
+            },
+            {
+              itemStyle: { borderColor: '#000', borderWidth: 1, gapWidth: 1 },
+              emphasis: { itemStyle: { borderColor: '#58A6FF', borderWidth: 2 } },
+            },
+            {
+              itemStyle: { borderColor: '#000', borderWidth: 0.5, gapWidth: 1 },
+            },
+          ],
+          label: {
+            show: true,
+            position: 'inside',
+            align: 'center',
+            verticalAlign: 'middle',
+            overflow: 'truncate',
+            rich: {
+              name: {
+                fontSize: 11,
+                fontFamily: 'Inter, sans-serif',
+                color: 'rgba(230,237,243,0.9)',
+                fontWeight: '700',
+                lineHeight: 14,
+              },
+              chg: {
+                fontSize: 9,
+                fontFamily: 'JetBrains Mono, monospace',
+                color: 'rgba(230,237,243,0.65)',
+                lineHeight: 12,
+              },
+            },
+          },
+          upperLabel: { show: false },
+          breadcrumb: { show: false },
+          tooltip: { show: false },
+        }],
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          backgroundColor: 'rgba(13,17,23,0.95)',
+          borderColor: '#1E2738',
+          borderWidth: 1,
+          padding: [6, 10],
+          textStyle: { color: '#E6EDF3', fontSize: 11, fontFamily: 'Inter, sans-serif' },
+          formatter: function(p) {
+            if (!p.data) return '';
+            const d = p.data;
+            const chg = d.rawChg || 0;
+            const chgStr = (chg >= 0 ? '<span style="color:#3FB950">+' : '<span style="color:#F85149">') + chg.toFixed(2) + '%</span>';
+            const valStr = (TM_STATE.metric === 'volume'
+              ? '$' + (d.value/1000).toFixed(1) + 'B 거래대금'
+              : '$' + (d.value/1000).toFixed(1) + 'T 시가총액');
+            return '<div style="font-weight:700;font-size:12px;margin-bottom:3px">' + d.name + '</div>' +
+                   '<div style="font-size:11px;color:#8B949E">당일 등락률: ' + chgStr + '</div>' +
+                   '<div style="font-size:10px;color:#3D4452;margin-top:2px">' + valStr + '</div>' +
+                   (d.hasChildren ? '<div style="font-size:9px;color:#3D4452;margin-top:3px">↓ 휠 다운으로 상세 보기</div>' : '');
+          },
+        },
+        backgroundColor: '#000',
+      };
+    }
+
+    // ── ECharts 초기화 ──
+    function initTM() {
+      const el = document.getElementById('tm-echarts');
+      if (!el || TM_STATE.chart) return;
+      if (typeof echarts === 'undefined') return;
+
+      TM_STATE.chart = echarts.init(el, null, { renderer: 'canvas', useDirtyRect: true });
+      TM_STATE.currentData = TM_DATA;
+      tmRender();
+      tmSetupWheel();
+
+      // ResizeObserver
+      if (TM_STATE.resizeObs) TM_STATE.resizeObs.disconnect();
+      TM_STATE.resizeObs = new ResizeObserver(() => tmHandleResize());
+      TM_STATE.resizeObs.observe(el);
+    }
+
+    function tmHandleResize() {
+      if (TM_STATE.chart) TM_STATE.chart.resize();
+    }
+
+    // ── 현재 뷰 렌더 ──
+    function tmRender() {
+      if (!TM_STATE.chart) return;
+      const node = tmGetCurrentNode();
+      TM_STATE.currentData = node;
+      const opt = tmBuildOption(node);
+      TM_STATE.chart.setOption(opt, true);
+      tmUpdateBreadcrumb();
+      tmUpdateDepthBadge();
+    }
+
+    // ── 브레드크럼 업데이트 ──
+    function tmUpdateBreadcrumb() {
+      const el = document.getElementById('tm-breadcrumb');
+      if (!el) return;
+      const items = [{ id: -1, name: '전체자산시장' }];
+      TM_STATE.path.forEach((id, i) => {
+        const pathSoFar = TM_STATE.path.slice(0, i + 1);
+        const node = tmFindNode(TM_DATA, pathSoFar);
+        items.push({ id: i, name: node.name });
       });
-    })();
+      el.innerHTML = items.map((item, i) => {
+        const isLast = i === items.length - 1;
+        return (i > 0 ? '<span class="tm-bc-sep">›</span>' : '') +
+          '<span class="tm-bc-item' + (isLast ? ' active' : '') + '" ' +
+          'onclick="tmNavTo(' + (item.id) + ')">' + item.name + '</span>';
+      }).join('');
+    }
+
+    // ── DEPTH 배지 업데이트 ──
+    function tmUpdateDepthBadge() {
+      const el = document.getElementById('tm-depth-num');
+      if (el) el.textContent = TM_STATE.path.length + 1;
+    }
+
+    // ── 브레드크럼 클릭으로 네비게이션 ──
+    function tmNavTo(depthIdx) {
+      if (depthIdx < 0) {
+        TM_STATE.path = [];
+      } else {
+        TM_STATE.path = TM_STATE.path.slice(0, depthIdx + 1);
+      }
+      tmRender();
+    }
+
+    // ── 드릴다운 (휠다운) ──
+    function tmDrillDown(nodeId) {
+      if (TM_STATE.locked) return;
+      const nextPath = [...TM_STATE.path, nodeId];
+      const node = tmFindNode(TM_DATA, nextPath);
+      if (!node || !node.children || node.children.length === 0) {
+        // 리프: bounce 피드백
+        tmBounceNode(nodeId);
+        return;
+      }
+      TM_STATE.locked = true;
+      TM_STATE.path = nextPath;
+      tmRender();
+      clearTimeout(TM_STATE.lockTimer);
+      TM_STATE.lockTimer = setTimeout(() => { TM_STATE.locked = false; }, 700);
+    }
+
+    // ── 드릴업 (휠업) ──
+    function tmDrillUp() {
+      if (TM_STATE.locked) return;
+      if (TM_STATE.path.length === 0) return; // 이미 루트
+      TM_STATE.locked = true;
+      TM_STATE.path.pop();
+      tmRender();
+      clearTimeout(TM_STATE.lockTimer);
+      TM_STATE.lockTimer = setTimeout(() => { TM_STATE.locked = false; }, 700);
+    }
+
+    // ── 리프 노드 bounce 피드백 ──
+    function tmBounceNode(nodeId) {
+      const container = document.getElementById('tm-echarts');
+      if (!container) return;
+      container.classList.remove('tm-bounce');
+      void container.offsetWidth;
+      container.classList.add('tm-bounce');
+      setTimeout(() => container.classList.remove('tm-bounce'), 400);
+    }
+
+    // ── 마우스 위치 기반 노드 찾기 ──
+    function tmGetNodeUnderCursor(e) {
+      if (!TM_STATE.chart) return null;
+      const pt = TM_STATE.chart.convertFromPixel('series', [e.offsetX, e.offsetY]);
+      return null; // ECharts doesn't expose this directly; use ZRender event instead
+    }
+
+    // ── 휠 이벤트 세팅 ──
+    function tmSetupWheel() {
+      const container = document.getElementById('tm-canvas-wrap');
+      if (!container) return;
+
+      let _hoveredNodeId = null;
+      let _lastWheelTime = 0;
+      const THROTTLE_MS = 400;
+
+      // ZRender mousemove로 hovering 노드 추적
+      if (TM_STATE.chart) {
+        TM_STATE.chart.on('mouseover', function(params) {
+          if (params.data) _hoveredNodeId = params.data.id;
+        });
+        TM_STATE.chart.on('mouseout', function() {
+          _hoveredNodeId = null;
+        });
+      }
+
+      container.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const now = Date.now();
+        if (now - _lastWheelTime < THROTTLE_MS) return;
+        _lastWheelTime = now;
+
+        if (e.deltaY > 0) {
+          // Scroll Down → Drill-In
+          if (_hoveredNodeId) {
+            tmDrillDown(_hoveredNodeId);
+          }
+        } else {
+          // Scroll Up → Drill-Out
+          tmDrillUp();
+        }
+      }, { passive: false });
+    }
+
+    // ── 메트릭 변경 ──
+    function tmSetMetric(val) {
+      TM_STATE.metric = val;
+      tmRender();
+    }
+
+    // ── 자산군 필터 변경 ──
+    function tmFilterChanged() {
+      const cbs = document.querySelectorAll('.tm-asset-cb');
+      TM_STATE.enabledAssets.clear();
+      cbs.forEach(cb => { if (cb.checked) TM_STATE.enabledAssets.add(cb.value); });
+      // 현재 path가 필터된 자산군이면 루트로 복귀
+      if (TM_STATE.path.length > 0) {
+        const topNode = TM_DATA.children.find(c => c.id === TM_STATE.path[0]);
+        if (topNode && !TM_STATE.enabledAssets.has(topNode.assetClass)) {
+          TM_STATE.path = [];
+        }
+      }
+      tmRender();
+    }
+
+    // ── 검색 하이라이팅 ──
+    function tmOnSearch(val) {
+      TM_STATE.searchKw = val.trim().toLowerCase();
+      tmRender();
+    }
+
+    // ── 사이드바 토글 ──
+    function tmToggleSidebar() {
+      const sb = document.getElementById('tm-sidebar');
+      if (!sb) return;
+      sb.classList.toggle('collapsed');
+      setTimeout(() => tmHandleResize(), 220);
+    }
 
     // ══════════════════════════════════════════════
     // IIT — 이슈-인사이트 스레드 JS
