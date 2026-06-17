@@ -553,7 +553,6 @@ app.get('*', (c) => {
       padding: 8px;
       overflow: hidden;
     }
-    /* 카드 자체가 그리드 셀을 채우도록 */
     .portfolio-grid > .card {
       min-height: 0;
       display: flex;
@@ -566,241 +565,368 @@ app.get('*', (c) => {
       overflow: hidden;
     }
 
-    /* Widget 1: Portfolio Summary */
-    .portfolio-summary-widget .card-body {
-      padding: 0;
-    }
+    /* ── Widget 1: Portfolio Summary (pfs) ── */
+    .portfolio-summary-widget .card-body { padding: 0; }
 
-    .widget-inner-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    /* Donut + KPI row */
-    .donut-kpi-row {
+    /* 3영역 메인 그리드: 좌45% + 우55% */
+    .pfs-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border-bottom: 1px solid var(--border-color);
+      grid-template-columns: 45% 55%;
+      height: 100%;
+      overflow: hidden;
     }
 
-    .donut-panel {
-      padding: 10px 12px;
+    /* 좌측: 도넛 + 범례 */
+    .pfs-left {
+      display: flex;
+      flex-direction: column;
       border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .donut-container {
-      position: relative;
-      width: 110px;
-      height: 110px;
-    }
-
-    .donut-center-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-
-    .donut-center-value {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-accent);
-      font-family: 'JetBrains Mono', monospace;
-      line-height: 1;
-    }
-
-    .donut-center-sub {
-      font-size: 8px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .donut-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      width: 100%;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      overflow: hidden;
+      padding: 8px 6px;
       gap: 6px;
     }
 
-    .legend-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    /* 도넛 차트 래퍼 (ECharts용) */
+    .pfs-donut-wrap {
+      flex: 0 0 auto;
+      position: relative;
+      width: 100%;
+      height: 175px;
+      min-height: 140px;
     }
 
-    .legend-name {
-      flex: 1;
+    #pfs-donut-chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 도넛 호버 팝오버 */
+    #pfs-hover-popover {
+      position: fixed;
+      z-index: 9999;
+      background: rgba(13,17,23,0.97);
+      border: 1px solid #1E2738;
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-width: 200px;
+      max-width: 260px;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+    }
+
+    .pfs-pop-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-accent);
+      margin-bottom: 6px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #1E2738;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pfs-pop-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    .pfs-pop-row {
+      display: flex;
+      align-items: center;
+      padding: 2px 0;
+      gap: 6px;
+    }
+
+    .pfs-pop-ticker {
       font-size: 10px;
-      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      min-width: 42px;
     }
 
-    .legend-pct {
+    .pfs-pop-pct {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      flex: 1;
+      text-align: right;
+    }
+
+    .pfs-pop-amt {
       font-size: 10px;
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-primary);
       font-weight: 500;
     }
 
-    .kpi-panel {
-      padding: 20px 16px;
+    /* 범례 스크롤 영역 */
+    .pfs-legend {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
+      gap: 3px;
+    }
+
+    .pfs-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 1px 2px;
+    }
+
+    .pfs-legend-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pfs-legend-name {
+      flex: 1;
+      font-size: 10px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pfs-legend-pct {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* 우측 컬럼 */
+    .pfs-right {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 우측 상단: 성과 KPI (30%) */
+    .pfs-perf {
+      flex: 0 0 30%;
+      min-height: 0;
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .pfs-perf-hdr {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      flex-shrink: 0;
     }
 
-    .kpi-card {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 10px 12px;
-    }
-
-    .kpi-label {
+    .pfs-perf-label {
       font-size: 9px;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 4px;
     }
 
-    .kpi-value {
+    .pfs-kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .pfs-kpi-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 7px 9px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .pfs-kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .pfs-kpi-card.positive-card::before { background: #3FB950; }
+    .pfs-kpi-card.negative-card::before { background: #F85149; }
+
+    .pfs-kpi-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .pfs-kpi-value {
       font-size: 20px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
-      color: var(--text-accent);
       line-height: 1;
+      flex-shrink: 0;
     }
 
-    .kpi-change {
-      font-size: 10px;
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: 3px;
+    .pfs-kpi-value.neon-green {
+      color: #39FF14;
+      text-shadow: 0 0 10px rgba(57,255,20,0.5), 0 0 20px rgba(57,255,20,0.2);
     }
+
+    .pfs-kpi-value.neon-red {
+      color: #FF4444;
+      text-shadow: 0 0 10px rgba(255,68,68,0.5), 0 0 20px rgba(255,68,68,0.2);
+    }
+
+    .pfs-kpi-sub {
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-secondary);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    /* 우측 하단: 리스크 (70%) */
+    .pfs-risk {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 6px 8px 4px;
+    }
+
+    .pfs-risk-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+    }
+
+    .pfs-risk-title {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    /* 리스크 프리셋 드롭다운 */
+    .pfs-preset-wrap {
+      position: relative;
+    }
+
+    .pfs-preset-btn {
+      font-size: 9px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .pfs-preset-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+
+    .pfs-preset-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      z-index: 500;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+      min-width: 170px;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .pfs-preset-dropdown.open { display: block; animation: fadeInDown 0.15s ease; }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .pfs-preset-item {
+      font-size: 10px;
+      padding: 7px 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .pfs-preset-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .pfs-preset-item.active { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+
+    /* ECharts 리스크 바 차트 영역 */
+    .pfs-risk-chart-wrap {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      transition: opacity 0.25s;
+    }
+
+    #pfs-risk-chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 자산군/종목 세그먼트 버튼 */
+    .pfs-seg-btns {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .pfs-seg-btn {
+      font-size: 9px;
+      padding: 3px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.15s;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .pfs-seg-btn:last-child { border-right: none; }
+    .pfs-seg-btn.active { background: rgba(59,130,246,0.18); color: var(--accent-blue); }
+    .pfs-seg-btn:hover:not(.active) { background: var(--bg-hover); color: var(--text-primary); }
 
     .positive { color: var(--green-light); }
     .negative { color: var(--red-light); }
     .neutral  { color: var(--text-secondary); }
-
-    /* Risk Bars */
-    .risk-panel {
-      padding: 8px 12px;
-    }
-
-    .risk-title {
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
-    }
-
-    .risk-bar-item {
-      margin-bottom: 6px;
-    }
-
-    .risk-bar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-
-    .risk-bar-label {
-      font-size: 10px;
-      color: var(--text-secondary);
-    }
-
-    .risk-bar-value {
-      font-size: 10px;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--text-primary);
-    }
-
-    .risk-bar-track {
-      height: 5px;
-      background: var(--bg-tertiary);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .risk-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 1s ease-out;
-    }
-
-    .risk-fill-low    { background: linear-gradient(90deg, #2EA043, #3FB950); }
-    .risk-fill-mid    { background: linear-gradient(90deg, #D29922, #F0B429); }
-    .risk-fill-high   { background: linear-gradient(90deg, #F85149, #FF7B72); }
-
-    /* Holdings table */
-    .holdings-panel {
-      padding: 6px 10px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .holdings-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .holdings-table th {
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      padding: 0 4px 6px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .holdings-table th:not(:first-child) { text-align: right; }
-
-    .holdings-table td {
-      padding: 4px 4px;
-      font-size: 10px;
-      border-bottom: 1px solid rgba(33, 38, 45, 0.5);
-    }
-
-    .holdings-table tr:last-child td { border-bottom: none; }
-
-    .holdings-table td:not(:first-child) {
-      text-align: right;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .asset-ticker {
-      font-weight: 600;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--accent-cyan);
-    }
-
-    .asset-name {
-      font-size: 9px;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
 
     /* Widget 2: Correlation Analysis */
     .correlation-widget .card-body { padding: 0; overflow: hidden; }
@@ -3682,181 +3808,81 @@ app.get('*', (c) => {
                   포트폴리오 통합 요약
                 </div>
                 <div class="card-actions">
-                  <button class="card-btn active" id="toggle-asset" onclick="toggleAssetView(this)">자산군</button>
-                  <button class="card-btn" id="toggle-ticker" onclick="toggleTickerView(this)">종목</button>
+                  <!-- 자산군 / 종목 세그먼트 토글 -->
+                  <div class="pfs-seg-btns">
+                    <button class="pfs-seg-btn active" id="pfs-seg-asset" onclick="pfsToggleMode('asset')">자산군</button>
+                    <button class="pfs-seg-btn" id="pfs-seg-ticker" onclick="pfsToggleMode('ticker')">종목</button>
+                  </div>
                   <button class="card-btn">내보내기 <i class="fas fa-download" style="font-size:9px;margin-left:2px;"></i></button>
                 </div>
               </div>
               <div class="card-body">
-                <div class="widget-inner-layout">
 
-                  <!-- Donut + KPI Row -->
-                  <div class="donut-kpi-row">
-                    <!-- Donut Chart -->
-                    <div class="donut-panel">
-                      <div class="donut-container">
-                        <canvas id="portfolioDonut"></canvas>
-                        <div class="donut-center-label">
-                          <div class="donut-center-value">$1.24M</div>
-                          <div class="donut-center-sub">총 AUM</div>
+                <!-- ── 메인 3영역 그리드 ── -->
+                <div class="pfs-grid">
+
+                  <!-- 좌측: 도넛 차트 + 범례 -->
+                  <div class="pfs-left">
+                    <div class="pfs-donut-wrap">
+                      <div id="pfs-donut-chart"></div>
+                    </div>
+                    <div class="pfs-legend" id="pfs-legend"></div>
+                  </div>
+
+                  <!-- 우측: KPI(30%) + 리스크(70%) -->
+                  <div class="pfs-right">
+
+                    <!-- 우측 상단: 성과 KPI 2카드 -->
+                    <div class="pfs-perf">
+                      <div class="pfs-perf-hdr">
+                        <span class="pfs-perf-label">성과 요약</span>
+                        <span style="font-size:9px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">vs. S&amp;P 500</span>
+                      </div>
+                      <div class="pfs-kpi-row">
+                        <div class="pfs-kpi-card positive-card">
+                          <div class="pfs-kpi-label">총 누적 수익률</div>
+                          <div class="pfs-kpi-value neon-green">+42.85%</div>
+                          <div class="pfs-kpi-sub">포트폴리오 전체</div>
+                        </div>
+                        <div class="pfs-kpi-card positive-card">
+                          <div class="pfs-kpi-label">벤치마크 알파 (α)</div>
+                          <div class="pfs-kpi-value neon-green">+14.35%</div>
+                          <div class="pfs-kpi-sub">S&amp;P 500 대비 초과</div>
                         </div>
                       </div>
-                      <div class="donut-legend" id="donut-legend"></div>
                     </div>
 
-                    <!-- KPI Cards -->
-                    <div class="kpi-panel">
-                      <div class="kpi-card">
-                        <div class="kpi-label">YTD 수익률</div>
-                        <div class="kpi-value positive">+14.8%</div>
-                        <div class="kpi-change positive">▲ 벤치마크 +3.2%p 초과</div>
+                    <!-- 우측 하단: 리스크 바 차트 -->
+                    <div class="pfs-risk">
+                      <div class="pfs-risk-hdr">
+                        <span class="pfs-risk-title">심화 리스크 지표</span>
+                        <div class="pfs-preset-wrap">
+                          <button class="pfs-preset-btn" id="pfs-preset-btn" onclick="pfsTogglePreset()">
+                            <i class="fas fa-sliders-h" style="font-size:8px;"></i>
+                            <span id="pfs-preset-label">기본 리스크</span>
+                            <i class="fas fa-chevron-down" style="font-size:7px;"></i>
+                          </button>
+                          <div class="pfs-preset-dropdown" id="pfs-preset-dropdown">
+                            <div class="pfs-preset-item active" data-preset="basic" onclick="pfsSetRiskPreset('basic',this)">
+                              <i class="fas fa-chart-bar"></i> 기본 리스크 세트
+                            </div>
+                            <div class="pfs-preset-item" data-preset="tail" onclick="pfsSetRiskPreset('tail',this)">
+                              <i class="fas fa-exclamation-triangle"></i> 꼬리 위험 세트
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="kpi-card">
-                        <div class="kpi-label">샤프 지수</div>
-                        <div class="kpi-value neutral">1.64</div>
-                        <div class="kpi-change neutral">최근 252일 기준</div>
-                      </div>
-                      <div class="kpi-card">
-                        <div class="kpi-label">최대 낙폭 (MDD)</div>
-                        <div class="kpi-value negative">-7.3%</div>
-                        <div class="kpi-change neutral">2024.01.15 ~ 2024.02.03</div>
+                      <div class="pfs-risk-chart-wrap" id="pfs-risk-chart-wrap">
+                        <div id="pfs-risk-chart"></div>
                       </div>
                     </div>
+
                   </div>
-
-                  <!-- Risk Bars -->
-                  <div class="risk-panel">
-                    <div class="risk-title">심화 리스크 관리</div>
-
-                    <div class="risk-bar-item">
-                      <div class="risk-bar-header">
-                        <span class="risk-bar-label">포트폴리오 VaR (95%, 1D)</span>
-                        <span class="risk-bar-value negative">-$8,420</span>
-                      </div>
-                      <div class="risk-bar-track">
-                        <div class="risk-bar-fill risk-fill-mid" style="width: 34%;"></div>
-                      </div>
-                    </div>
-
-                    <div class="risk-bar-item">
-                      <div class="risk-bar-header">
-                        <span class="risk-bar-label">베타 (vs S&amp;P 500)</span>
-                        <span class="risk-bar-value neutral">0.82</span>
-                      </div>
-                      <div class="risk-bar-track">
-                        <div class="risk-bar-fill risk-fill-low" style="width: 41%;"></div>
-                      </div>
-                    </div>
-
-                    <div class="risk-bar-item">
-                      <div class="risk-bar-header">
-                        <span class="risk-bar-label">포트폴리오 변동성 (연환산)</span>
-                        <span class="risk-bar-value neutral">12.4%</span>
-                      </div>
-                      <div class="risk-bar-track">
-                        <div class="risk-bar-fill risk-fill-low" style="width: 28%;"></div>
-                      </div>
-                    </div>
-
-                    <div class="risk-bar-item">
-                      <div class="risk-bar-header">
-                        <span class="risk-bar-label">집중도 리스크 (허핀달 지수)</span>
-                        <span class="risk-bar-value negative">0.18</span>
-                      </div>
-                      <div class="risk-bar-track">
-                        <div class="risk-bar-fill risk-fill-high" style="width: 58%;"></div>
-                      </div>
-                    </div>
-
-                    <div class="risk-bar-item">
-                      <div class="risk-bar-header">
-                        <span class="risk-bar-label">유동성 스코어</span>
-                        <span class="risk-bar-value positive">87/100</span>
-                      </div>
-                      <div class="risk-bar-track">
-                        <div class="risk-bar-fill risk-fill-low" style="width: 87%;"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Holdings Table -->
-                  <div class="holdings-panel">
-                    <table class="holdings-table">
-                      <thead>
-                        <tr>
-                          <th>종목 / 자산</th>
-                          <th>비중</th>
-                          <th>평가금액</th>
-                          <th>수익률</th>
-                          <th>1D 변동</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">AAPL</div>
-                            <div class="asset-name">Apple Inc.</div>
-                          </td>
-                          <td class="neutral">14.2%</td>
-                          <td class="neutral">$176,080</td>
-                          <td class="positive">+18.4%</td>
-                          <td class="positive">+0.92%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">NVDA</div>
-                            <div class="asset-name">NVIDIA Corp.</div>
-                          </td>
-                          <td class="neutral">11.8%</td>
-                          <td class="neutral">$146,320</td>
-                          <td class="positive">+42.1%</td>
-                          <td class="positive">+2.14%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">TLT</div>
-                            <div class="asset-name">iShares 20Y+ Bond</div>
-                          </td>
-                          <td class="neutral">18.6%</td>
-                          <td class="neutral">$230,640</td>
-                          <td class="negative">-8.2%</td>
-                          <td class="positive">+0.31%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">GLD</div>
-                            <div class="asset-name">SPDR Gold Shares</div>
-                          </td>
-                          <td class="neutral">12.4%</td>
-                          <td class="neutral">$153,760</td>
-                          <td class="positive">+9.7%</td>
-                          <td class="positive">+0.28%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">BTC</div>
-                            <div class="asset-name">Bitcoin</div>
-                          </td>
-                          <td class="neutral">8.1%</td>
-                          <td class="neutral">$100,440</td>
-                          <td class="positive">+56.3%</td>
-                          <td class="positive">+1.24%</td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="asset-ticker">CASH</div>
-                            <div class="asset-name">USD / MMKT</div>
-                          </td>
-                          <td class="neutral">34.9%</td>
-                          <td class="neutral">$432,760</td>
-                          <td class="neutral">+5.1%</td>
-                          <td class="neutral">+0.01%</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <!-- /pfs-right -->
 
                 </div>
+                <!-- /pfs-grid -->
+
               </div>
             </div>
 
@@ -4266,7 +4292,7 @@ app.get('*', (c) => {
                   <div class="tm-lock-overlay" id="tm-lock"></div>
                 </div>
                 <div class="tm-wheel-hint">
-                  <span class="tm-hint-key">↓ 휠 다운</span> = Drill-In &nbsp;|&nbsp; <span class="tm-hint-key">↑ 휠 업</span> = Drill-Out
+                  <span class="tm-hint-key">클릭</span> = Drill-In &nbsp;|&nbsp; <span class="tm-hint-key">↓ 휠 다운</span> = Drill-In &nbsp;|&nbsp; <span class="tm-hint-key">↑ 휠 업</span> = Drill-Out
                 </div>
               </div>
 
@@ -4556,6 +4582,17 @@ app.get('*', (c) => {
           if (typeof dbtmHandleResize === 'function') { dbtmHandleResize(); }
         }, 80));
       }
+      if (page === 'portfolio') {
+        requestAnimationFrame(() => setTimeout(() => {
+          if (typeof initPFS === 'function') {
+            if (!PFS_STATE.donutChart || !PFS_STATE.riskChart) { initPFS(); }
+            else {
+              if (PFS_STATE.donutChart) PFS_STATE.donutChart.resize();
+              if (PFS_STATE.riskChart)  PFS_STATE.riskChart.resize();
+            }
+          }
+        }, 80));
+      }
     }
 
     // Bind nav items
@@ -4592,136 +4629,370 @@ app.get('*', (c) => {
     updateClock();
 
     // ============================================================
-    //  PORTFOLIO TOGGLE SWITCH
+    //  PFS — PORTFOLIO SUMMARY (ECharts 도넛 + 수평 바)
     // ============================================================
-    function toggleAssetView(btn) {
-      AppState.portfolioView = 'asset';
-      btn.classList.add('active');
-      document.getElementById('toggle-ticker').classList.remove('active');
-      updateDonutChart('asset');
-    }
 
-    function toggleTickerView(btn) {
-      AppState.portfolioView = 'ticker';
-      btn.classList.add('active');
-      document.getElementById('toggle-asset').classList.remove('active');
-      updateDonutChart('ticker');
-    }
-
-    // ============================================================
-    //  CORRELATION PRESET SELECTOR (local state)
-    // ============================================================
-    function setPreset(btn, preset) {
-      AppState.corrPreset = preset;
-      document.querySelectorAll('.card-actions .card-btn').forEach(b => {
-        if (['1Y','3Y','5Y','ALL'].includes(b.textContent)) b.classList.remove('active');
-      });
-      btn.classList.add('active');
-      updateTimelineChart(preset, AppState.rollingWindow);
-    }
-
-    function setRolling(btn, days) {
-      AppState.rollingWindow = days;
-      document.querySelectorAll('#rolling-period .period-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateTimelineChart(AppState.corrPreset, days);
-    }
-
-    // ============================================================
-    //  CHART DATA
-    // ============================================================
-    const ASSET_DATA = {
+    // ── 포트폴리오 데이터 ──
+    const PFS_DATA = {
       asset: {
         labels: ['미국 주식', '채권', '실물 자산', '크립토', '현금성'],
         values: [26.0, 18.6, 12.4, 8.1, 34.9],
-        colors: ['#3B82F6','#22D3EE','#F59E0B','#A78BFA','#6B7280']
+        colors: ['#3B82F6','#22D3EE','#F59E0B','#A78BFA','#6B7280'],
+        holdings: {
+          '미국 주식': [
+            { ticker:'AAPL', pct: 14.2, amt: '$176K' },
+            { ticker:'NVDA', pct: 11.8, amt: '$146K' },
+          ],
+          '채권': [
+            { ticker:'TLT',  pct: 18.6, amt: '$231K' },
+          ],
+          '실물 자산': [
+            { ticker:'GLD',  pct: 12.4, amt: '$154K' },
+          ],
+          '크립토': [
+            { ticker:'BTC',  pct: 8.1,  amt: '$100K' },
+          ],
+          '현금성': [
+            { ticker:'CASH', pct: 34.9, amt: '$433K' },
+          ],
+        }
       },
       ticker: {
         labels: ['AAPL','NVDA','TLT','GLD','BTC','CASH'],
         values: [14.2, 11.8, 18.6, 12.4, 8.1, 34.9],
-        colors: ['#3B82F6','#10B981','#22D3EE','#F59E0B','#A78BFA','#6B7280']
+        colors: ['#3B82F6','#10B981','#22D3EE','#F59E0B','#A78BFA','#6B7280'],
+        holdings: null
       }
     };
 
-    // Correlation Matrix Data
-    const ASSETS = ['SPX','TLT','GLD','BTC','DXY'];
-    const CORR_MATRIX = [
-      [ 1.00,  -0.62,  0.14,  0.41, -0.52],
-      [-0.62,   1.00, -0.05, -0.18,  0.34],
-      [ 0.14,  -0.05,  1.00,  0.22, -0.67],
-      [ 0.41,  -0.18,  0.22,  1.00, -0.21],
-      [-0.52,   0.34, -0.67, -0.21,  1.00],
-    ];
-
-    // ============================================================
-    //  DONUT CHART
-    // ============================================================
-    let donutChart = null;
-
-    function buildDonutLegend(data) {
-      const legend = document.getElementById('donut-legend');
-      legend.innerHTML = '';
-      data.labels.forEach((label, i) => {
-        const row = document.createElement('div');
-        row.className = 'legend-item';
-        row.innerHTML = \`
-          <div class="legend-dot" style="background:\${data.colors[i]};"></div>
-          <span class="legend-name">\${label}</span>
-          <span class="legend-pct">\${data.values[i]}%</span>
-        \`;
-        legend.appendChild(row);
-      });
-    }
-
-    function updateDonutChart(viewType) {
-      const data = ASSET_DATA[viewType];
-      if (donutChart) {
-        donutChart.data.labels = data.labels;
-        donutChart.data.datasets[0].data = data.values;
-        donutChart.data.datasets[0].backgroundColor = data.colors;
-        donutChart.update();
+    // ── 리스크 프리셋 데이터 ──
+    const PFS_RISK_PRESETS = {
+      basic: {
+        label: '기본 리스크',
+        items: [
+          { name: 'Sharpe Ratio',         value:  1.64, min: -2, max: 3,  color: '#3FB950', dir: 'right' },
+          { name: 'Beta (vs S&P 500)',     value:  0.82, min: -2, max: 2,  color: '#58A6FF', dir: 'right' },
+          { name: 'Volatility (Ann.)',     value: -12.4, min: -30, max: 0, color: '#58A6FF', dir: 'left'  },
+          { name: 'MDD',                  value: -7.3,  min: -40, max: 0, color: '#F85149', dir: 'left'  },
+        ]
+      },
+      tail: {
+        label: '꼬리 위험',
+        items: [
+          { name: 'VaR 95% (1D)',          value: -0.68, min: -5,  max: 0, color: '#F85149', dir: 'left'  },
+          { name: 'CVaR 99% (1D)',         value: -1.12, min: -5,  max: 0, color: '#FF7B72', dir: 'left'  },
+          { name: 'Sortino Ratio',         value:  2.31, min: -2,  max: 4, color: '#3FB950', dir: 'right' },
+          { name: 'Calmar Ratio',          value:  1.87, min: -2,  max: 4, color: '#3FB950', dir: 'right' },
+        ]
       }
-      buildDonutLegend(data);
+    };
+
+    const PFS_STATE = {
+      mode: 'asset',           // 'asset' | 'ticker'
+      preset: 'basic',
+      donutChart: null,
+      riskChart: null,
+      resizeObs: null,
+    };
+
+    // ── 도넛 범례 렌더 ──
+    function pfsRenderLegend(data) {
+      const el = document.getElementById('pfs-legend');
+      if (!el) return;
+      el.innerHTML = data.labels.map((label, i) =>
+        '<div class="pfs-legend-item">' +
+          '<div class="pfs-legend-dot" style="background:' + data.colors[i] + '"></div>' +
+          '<span class="pfs-legend-name">' + label + '</span>' +
+          '<span class="pfs-legend-pct">' + data.values[i] + '%</span>' +
+        '</div>'
+      ).join('');
     }
 
-    function initDonutChart() {
-      const ctx = document.getElementById('portfolioDonut').getContext('2d');
-      const data = ASSET_DATA.asset;
-      donutChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: data.labels,
-          datasets: [{
-            data: data.values,
-            backgroundColor: data.colors,
-            borderColor: '#12161F',
-            borderWidth: 2,
-            hoverBorderWidth: 3,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: true,
-          cutout: '68%',
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => \` \${ctx.label}: \${ctx.raw}%\`
+    // ── ECharts 도넛 옵션 빌드 ──
+    function pfsBuildDonutOption(data) {
+      return {
+        backgroundColor: 'transparent',
+        tooltip: { show: false },
+        graphic: [{
+          type: 'group',
+          left: 'center',
+          top: 'middle',
+          children: [
+            {
+              type: 'text',
+              style: {
+                text: '$1.24M',
+                fill: '#FFFFFF',
+                fontSize: 15,
+                fontWeight: 'bold',
+                fontFamily: 'JetBrains Mono, monospace',
+                textAlign: 'center',
+                x: 0, y: -8,
               },
-              backgroundColor: '#1C2232',
-              borderColor: '#2D3444',
-              borderWidth: 1,
-              titleColor: '#E6EDF3',
-              bodyColor: '#8B949E',
+              z: 100,
+            },
+            {
+              type: 'text',
+              style: {
+                text: '총 AUM',
+                fill: '#484F58',
+                fontSize: 9,
+                fontFamily: 'Inter, sans-serif',
+                textAlign: 'center',
+                x: 0, y: 10,
+              },
+              z: 100,
             }
-          }
-        }
-      });
-      buildDonutLegend(data);
+          ]
+        }],
+        series: [{
+          type: 'pie',
+          radius: ['55%', '75%'],
+          center: ['50%', '50%'],
+          data: data.labels.map((label, i) => ({
+            name: label,
+            value: data.values[i],
+            itemStyle: {
+              color: data.colors[i],
+              borderRadius: 6,
+              borderColor: '#0B0E14',
+              borderWidth: 3,
+            }
+          })),
+          label: { show: false },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 14,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0,0,0,0.5)',
+            },
+            scale: true,
+            scaleSize: 4,
+          },
+          animationType: 'expansion',
+          animationDuration: 500,
+        }],
+      };
     }
 
-    // ============================================================
+    // ── ECharts 수평 바 옵션 빌드 ──
+    function pfsBuildRiskOption(preset) {
+      const items = PFS_RISK_PRESETS[preset].items;
+      const yLabels = items.map(d => d.name);
+      const vals    = items.map(d => d.value);
+      const colors  = items.map(d => d.color);
+
+      return {
+        backgroundColor: 'transparent',
+        grid: { top: 6, bottom: 6, left: 8, right: 55, containLabel: true },
+        xAxis: {
+          type: 'value',
+          splitLine: {
+            show: true,
+            lineStyle: { color: '#1E2738', type: 'dashed', width: 1 }
+          },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+        },
+        yAxis: {
+          type: 'category',
+          data: yLabels,
+          inverse: true,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: '#8B949E',
+            fontSize: 9,
+            fontFamily: 'Inter, sans-serif',
+          },
+          splitLine: { show: false },
+        },
+        series: [{
+          type: 'bar',
+          data: vals.map((v, i) => ({
+            value: v,
+            itemStyle: { color: colors[i], borderRadius: 3 }
+          })),
+          barMaxWidth: 14,
+          label: {
+            show: true,
+            position: vals.map(v => v >= 0 ? 'right' : 'left'),
+            formatter: function(p) {
+              const v = p.value;
+              return (v >= 0 ? '+' : '') + v.toFixed(2);
+            },
+            color: '#E6EDF3',
+            fontSize: 9,
+            fontFamily: 'JetBrains Mono, monospace',
+            fontWeight: '600',
+          },
+          markLine: {
+            symbol: 'none',
+            lineStyle: { color: '#3D4452', type: 'solid', width: 1 },
+            data: [{ xAxis: 0 }],
+            label: { show: false },
+            animation: false,
+          },
+        }],
+        animation: true,
+        animationDuration: 400,
+        animationEasing: 'cubicOut',
+      };
+    }
+
+    // ── 도넛 초기화 ──
+    function pfsInitDonut() {
+      const el = document.getElementById('pfs-donut-chart');
+      if (!el || PFS_STATE.donutChart) return;
+      if (typeof echarts === 'undefined') return;
+      PFS_STATE.donutChart = echarts.init(el, null, { renderer: 'canvas', useDirtyRect: true });
+      const data = PFS_DATA[PFS_STATE.mode];
+      PFS_STATE.donutChart.setOption(pfsBuildDonutOption(data));
+      pfsRenderLegend(data);
+      pfsSetupDonutHover();
+    }
+
+    // ── 리스크 바 초기화 ──
+    function pfsInitRisk() {
+      const el = document.getElementById('pfs-risk-chart');
+      if (!el || PFS_STATE.riskChart) return;
+      if (typeof echarts === 'undefined') return;
+      PFS_STATE.riskChart = echarts.init(el, null, { renderer: 'canvas', useDirtyRect: true });
+      PFS_STATE.riskChart.setOption(pfsBuildRiskOption(PFS_STATE.preset));
+    }
+
+    // ── 전체 초기화 ──
+    function initPFS() {
+      pfsInitDonut();
+      pfsInitRisk();
+
+      // ResizeObserver
+      const wrap = document.getElementById('pfs-donut-chart');
+      const riskWrap = document.getElementById('pfs-risk-chart');
+      if (PFS_STATE.resizeObs) PFS_STATE.resizeObs.disconnect();
+      PFS_STATE.resizeObs = new ResizeObserver(() => {
+        if (PFS_STATE.donutChart) PFS_STATE.donutChart.resize();
+        if (PFS_STATE.riskChart)  PFS_STATE.riskChart.resize();
+      });
+      if (wrap)     PFS_STATE.resizeObs.observe(wrap);
+      if (riskWrap) PFS_STATE.resizeObs.observe(riskWrap);
+    }
+
+    // ── 도넛 호버 팝오버 ──
+    function pfsSetupDonutHover() {
+      if (!PFS_STATE.donutChart) return;
+      const pop = document.getElementById('pfs-hover-popover');
+      if (!pop) return;
+
+      PFS_STATE.donutChart.on('mouseover', function(params) {
+        if (PFS_STATE.mode !== 'asset') { pop.style.display = 'none'; return; }
+        const d = PFS_DATA.asset;
+        const name  = params.name;
+        const color = d.colors[d.labels.indexOf(name)] || '#999';
+        const pct   = params.value;
+        const holdings = (d.holdings && d.holdings[name]) || [];
+
+        let rows = holdings.map(h =>
+          '<div class="pfs-pop-row">' +
+            '<span class="pfs-pop-ticker">' + h.ticker + '</span>' +
+            '<span class="pfs-pop-pct">' + h.pct + '%</span>' +
+            '<span class="pfs-pop-amt">' + h.amt + '</span>' +
+          '</div>'
+        ).join('');
+
+        pop.innerHTML =
+          '<div class="pfs-pop-title">' +
+            '<div class="pfs-pop-dot" style="background:' + color + '"></div>' +
+            name + ' <span style="font-size:10px;color:#58A6FF;margin-left:auto;">' + pct + '%</span>' +
+          '</div>' + rows;
+
+        pop.style.display = 'block';
+      });
+
+      PFS_STATE.donutChart.on('mouseout', function() {
+        if (pop) pop.style.display = 'none';
+      });
+
+      // 마우스 위치 추적
+      const el = document.getElementById('pfs-donut-chart');
+      if (el) {
+        el.addEventListener('mousemove', function(e) {
+          if (pop.style.display === 'none') return;
+          const ox = e.clientX + 16;
+          const oy = e.clientY - 10;
+          const pw = pop.offsetWidth || 220;
+          const ph = pop.offsetHeight || 100;
+          pop.style.left = (ox + pw > window.innerWidth ? ox - pw - 32 : ox) + 'px';
+          pop.style.top  = (oy + ph > window.innerHeight ? oy - ph : oy) + 'px';
+        });
+      }
+    }
+
+    // ── 자산군/종목 토글 ──
+    function pfsToggleMode(mode) {
+      if (PFS_STATE.mode === mode) return;
+      PFS_STATE.mode = mode;
+
+      document.getElementById('pfs-seg-asset').classList.toggle('active', mode === 'asset');
+      document.getElementById('pfs-seg-ticker').classList.toggle('active', mode === 'ticker');
+
+      if (PFS_STATE.donutChart) {
+        const data = PFS_DATA[mode];
+        PFS_STATE.donutChart.setOption(pfsBuildDonutOption(data), true);
+        pfsRenderLegend(data);
+      }
+    }
+
+    // ── 리스크 프리셋 드롭다운 토글 ──
+    function pfsTogglePreset() {
+      const dd = document.getElementById('pfs-preset-dropdown');
+      if (dd) dd.classList.toggle('open');
+      // 외부 클릭 시 닫기
+      setTimeout(() => {
+        document.addEventListener('click', function closePfsDd(e) {
+          if (!e.target.closest('.pfs-preset-wrap')) {
+            const d2 = document.getElementById('pfs-preset-dropdown');
+            if (d2) d2.classList.remove('open');
+          }
+          document.removeEventListener('click', closePfsDd);
+        });
+      }, 0);
+    }
+
+    // ── 리스크 프리셋 선택 ──
+    function pfsSetRiskPreset(preset, el) {
+      PFS_STATE.preset = preset;
+
+      // 라벨 업데이트
+      const labelEl = document.getElementById('pfs-preset-label');
+      if (labelEl) labelEl.textContent = PFS_RISK_PRESETS[preset].label;
+
+      // active 클래스
+      document.querySelectorAll('.pfs-preset-item').forEach(it => {
+        it.classList.toggle('active', it.dataset.preset === preset);
+      });
+
+      // 드롭다운 닫기
+      const dd = document.getElementById('pfs-preset-dropdown');
+      if (dd) dd.classList.remove('open');
+
+      // 리스크 차트 재렌더 (fade transition)
+      const wrap = document.getElementById('pfs-risk-chart-wrap');
+      if (wrap) wrap.style.opacity = '0';
+      setTimeout(() => {
+        if (PFS_STATE.riskChart) {
+          PFS_STATE.riskChart.setOption(pfsBuildRiskOption(preset), true);
+        }
+        if (wrap) wrap.style.opacity = '1';
+      }, 200);
+    }
+
+    // ── 레거시 호환 (이전 toggleAssetView / toggleTickerView 호출 대응) ──
+    function toggleAssetView(btn) { pfsToggleMode('asset'); }
+    function toggleTickerView(btn) { pfsToggleMode('ticker'); }
+
+        // ============================================================
     //  CORRELATION HEATMAP
     // ============================================================
     function corrToColor(val) {
@@ -6981,6 +7252,16 @@ app.get('*', (c) => {
         TM_STATE.chart.on('mouseout', function() {
           _hoveredNodeId = null;
         });
+        // ── 클릭 드릴다운 ──
+        TM_STATE.chart.on('click', function(params) {
+          if (!params.data) return;
+          const nodeId = params.data.id;
+          if (!nodeId) return;
+          const now = Date.now();
+          if (now - _lastWheelTime < THROTTLE_MS) return;
+          _lastWheelTime = now;
+          tmDrillDown(nodeId);
+        });
       }
 
       container.addEventListener('wheel', function(e) {
@@ -8282,10 +8563,10 @@ app.get('*', (c) => {
     window.addEventListener('DOMContentLoaded', () => {
       loadSidebarState();
       buildDashboard();    // Main dashboard panels
-      initDonutChart();
       initHeatmap();
       initTimelineChart();
       renderIssueCards();  // Initialize issue page
+      // PFS는 portfolio 페이지로 이동 시 lazy init
     });
 
     // Re-build dashboard charts on navigate to dashboard
@@ -8294,10 +8575,15 @@ app.get('*', (c) => {
 
     // Resize handling
     window.addEventListener('resize', () => {
-      if (donutChart) donutChart.resize();
+      if (PFS_STATE && PFS_STATE.donutChart) PFS_STATE.donutChart.resize();
+      if (PFS_STATE && PFS_STATE.riskChart)  PFS_STATE.riskChart.resize();
       if (timelineChart) timelineChart.resize();
     });
   </script>
+
+  <!-- PFS 호버 팝오버 (전역 fixed, JS에서 제어) -->
+  <div id="pfs-hover-popover"></div>
+
 </body>
 </html>`
 
